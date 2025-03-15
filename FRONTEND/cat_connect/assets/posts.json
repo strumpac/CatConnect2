@@ -1,0 +1,21 @@
+[
+    {
+      "id": 1,
+      "username": "utente1",
+      "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Ginger_european_cat.jpg/220px-Ginger_european_cat.jpg",
+      "description": "Questo è il primo post di esempio."
+    },
+    {
+      "id": 2,
+      "username": "utente2",
+      "imageUrl": "https://citynews-today.stgy.ovh/~media/horizontal-low/41646192056107/a-beautiful-fluffy-cat-of-the-siberian-breed-sits-2022-11-01-07-53-11-utc.jpg",
+      "description": "Un altro post interessante da vedere."
+    },
+    {
+      "id": 3,
+      "username": "utente3",
+      "imageUrl": "https://zampol.it/wp-content/uploads/2023/02/Caratteristiche_del_gatto-scaled.jpg",
+      "description": "Guardate questa foto, che spettacolo!"
+    }
+  ]
+  
