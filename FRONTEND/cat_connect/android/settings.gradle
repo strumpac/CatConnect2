@@ -18,8 +18,11 @@ pluginManagement {
 
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
-    id "com.android.application" version "8.1.0" apply false
+    // Aggiorna la versione di com.android.application a 8.2.1 o superiore
+    id "com.android.application" version "8.2.1" apply false
+    //Verifica che la versione di kotlin sia sufficientemente aggiornata.
     id "org.jetbrains.kotlin.android" version "1.8.22" apply false
 }
 
 include ":app"
+include 'shared_preferences_android'
