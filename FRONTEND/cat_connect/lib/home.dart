@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -17,7 +19,6 @@ class _HomeScreenState extends State<HomeScreen> {
     loadPosts();
   }
 
-  //metodo che carica i post
   Future<void> loadPosts() async {
     final String response = await rootBundle.loadString('assets/posts.json');
     setState(() {
@@ -28,7 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  //metodo per mettere e togliere i like dai post
   Future<void> toggleLike(int index) async {
     final prefs = await SharedPreferences.getInstance();
     final likedPosts = prefs.getStringList('likedPosts') ?? [];
@@ -47,7 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
     await prefs.setStringList('likedPosts', likedPosts);
   }
 
-  //metodo per aggiungere i commenti
   Future<void> addComment(int index, String comment) async {
     final prefs = await SharedPreferences.getInstance();
     final postId = posts[index]['id'].toString();
@@ -61,95 +60,129 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Home')),
-      body: ListView.builder(
-        //iterazione per mettere tutti i post
-        itemCount: posts.length,
-        itemBuilder: (context, index) {
-          final post = posts[index];
-          return Card(
-            margin: EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                //immagine 
-                Image.network(
-                  post['imageUrl'],
-                  errorBuilder: (context, error, stackTrace) {
-                    return Icon(Icons.error, color: Colors.red);
-                  },
-                ),
-                //descrizione del post
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child:
-                      Text(post['description'], style: TextStyle(fontSize: 16)),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    //like
-                    IconButton(
-                      icon: Icon(Icons.favorite),
-                      color: post['liked'] == true
-                          ? Colors.pinkAccent
-                          : Colors.grey,
-                      onPressed: () => toggleLike(index),
-                    ),
-                    //commento
-                    IconButton(
-                      icon: Icon(Icons.comment),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            TextEditingController commentController =
-                                TextEditingController();
-                            return AlertDialog(
-                              title: Text('Aggiungi un commento'),
-                              content: TextField(
-                                controller: commentController,
-                                decoration:
-                                    InputDecoration(hintText: 'Scrivi qui...'),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: AnimationLimiter(
+          child: ListView.builder(
+            itemCount: posts.length,
+            itemBuilder: (context, index) {
+              final post = posts[index];
+              return AnimationConfiguration.staggeredList(
+                position: index,
+                child: SlideAnimation(
+                  verticalOffset: 50.0,
+                  child: FadeInAnimation(
+                    child: Card(
+                      margin: EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 8,
+                      shadowColor: Colors.black54,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                            child: CachedNetworkImage(
+                              imageUrl: post['imageUrl'],
+                              height: 300,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                color: Colors.grey[300],
+                                child: Icon(Icons.image, color: Colors.grey),
                               ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: Text('Annulla'),
+                              errorWidget: (context, url, error) => Icon(Icons.error, color: Colors.red),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Text(
+                              post['description'],
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: Row(
+                              children: [
+                                // Icona del Like
+                                IconButton(
+                                  icon: Icon(Icons.favorite, size: 30),
+                                  color: post['liked'] ? Colors.pinkAccent : Colors.grey,
+                                  onPressed: () => toggleLike(index),
                                 ),
-                                ElevatedButton(
+                                
+                                // Icona del Commento
+                                IconButton(
+                                  icon: Icon(Icons.comment, size: 28, color: Colors.black54),
                                   onPressed: () {
-                                    addComment(index, commentController.text);
-                                    Navigator.pop(context);
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        TextEditingController commentController = TextEditingController();
+                                        return AlertDialog(
+                                          title: Text('Aggiungi un commento'),
+                                          content: TextField(
+                                            controller: commentController,
+                                            decoration: InputDecoration(hintText: 'Scrivi qui...'),
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              child: Text('Annulla'),
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                addComment(index, commentController.text);
+                                                Navigator.pop(context);
+                                              },
+                                              child: Text('Invia'),
+                                            )
+                                          ],
+                                        );
+                                      },
+                                    );
                                   },
-                                  child: Text('Invia'),
-                                )
+                                ),
                               ],
-                            );
-                          },
-                        );
-                      },
-                    )
-                  ],
-                ),
-                FutureBuilder<List<String>>(
-                  future: SharedPreferences.getInstance().then(
-                    (prefs) =>
-                        prefs.getStringList('comments_${post['id']}') ?? [],
+                            ),
+                          ),
+                          FutureBuilder<List<String>>(
+                            future: SharedPreferences.getInstance().then(
+                              (prefs) => prefs.getStringList('comments_${post['id']}') ?? [],
+                            ),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData || snapshot.data!.isEmpty) return SizedBox.shrink();
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: snapshot.data!
+                                      .map((comment) => Padding(
+                                            padding: const EdgeInsets.symmetric(vertical: 2),
+                                            child: Text(
+                                              '- $comment',
+                                              style: TextStyle(color: Colors.black87, fontSize: 14),
+                                            ),
+                                          ))
+                                      .toList(),
+                                ),
+                              );
+                            },
+                          )
+                        ],
+                      ),
+                    ),
                   ),
-                  builder: (context, snapshot) { // lo snapshot contiene il risultato del future
-                    if (!snapshot.hasData) return SizedBox.shrink(); //se snapshot.hasData è false restituisce una sized box vuota
-                    return Column(
-                      children: snapshot.data!
-                          .map((comment) => ListTile(title: Text(comment)))
-                          .toList(),
-                    );
-                  },
-                )
-              ],
-            ),
-          );
-        },
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
