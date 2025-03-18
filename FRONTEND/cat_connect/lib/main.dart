@@ -79,23 +79,23 @@ class _MyAppState extends State<MyApp> {
                     fontSize: 25, // Aumenta la dimensione del font
                     fontWeight: FontWeight.bold, // Font in grassetto
                     fontFamily: 'Roboto', // Usa un font personalizzato (se ne hai uno)
-                    color: Color.fromARGB(255, 25, 0, 255), // Colore viola per il titolo
+                    color: Color.fromARGB(211, 28, 109, 202), // Colore viola per il titolo
                     shadows: [
                       Shadow(
                         offset: Offset(2, 2), // Ombra del titolo
                         blurRadius: 5, // Raggio della sfocatura dell'ombra
-                        color: Colors.black.withOpacity(0.4), // Colore dell'ombra
+                        color: Colors.black.withOpacity(0.2), // Colore dell'ombra
                       ),
                     ],
                   ),
                 ),
-                backgroundColor: Colors.yellow, // Colore di sfondo dell'AppBar
-                foregroundColor: Color.fromARGB(255, 25, 0, 255), // Colore del titolo
+                backgroundColor: Color.fromARGB(202, 247, 179, 101), // Colore di sfondo dell'AppBar
+                foregroundColor: Color(0x548ac6), // Colore del titolo
               ),
               body: _widgetOptions.elementAt(_selectedIndex),
               bottomNavigationBar: Container(
                 decoration: const BoxDecoration(
-                  color: Color.fromARGB(255, 25, 0, 255), // Viola
+                  color: Color.fromARGB(211, 28, 109, 202), // Viola
                 ),
                 child: BottomNavigationBar(
                   backgroundColor: Colors.transparent,
