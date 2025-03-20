@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+//font
+import 'package:google_fonts/google_fonts.dart';
 // Importo le varie schermate
 import 'account.dart';
 import 'add_post.dart';
@@ -48,21 +50,21 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Cat Connect',
       theme: ThemeData(
-        primaryColor: const Color(0xFFFF9800), // Arancione caldo
-        scaffoldBackgroundColor: const Color(0xFFFFF3E0), // Beige chiaro
+        primaryColor: Colors.white,
+        scaffoldBackgroundColor: Colors.white,
         colorScheme: const ColorScheme.light(
-          primary: Color(0xFFFF9800), // Arancione principale
-          secondary: Color.fromARGB(255, 25, 0, 255), // Viola per accenti
-          background: Color(0xFFFFF3E0), // Beige chiaro
+          primary: Colors.white,
+          secondary: Colors.black,
+          background: Color(0xFFFFF3E0),
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFFFF9800), // Colore di sfondo dell'AppBar
-          foregroundColor: Colors.white, // Colore del titolo (foreground)
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.white,
         ),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: Color.fromARGB(255, 25, 0, 255), // Viola
-          selectedItemColor: Colors.white, // Elemento selezionato in bianco
-          unselectedItemColor: Colors.grey, // Elementi non selezionati in grigio
+          backgroundColor: Colors.black,
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.grey,
           elevation: 5.0,
         ),
         textTheme: const TextTheme(
@@ -73,29 +75,34 @@ class _MyAppState extends State<MyApp> {
       home: _isLoggedIn
           ? Scaffold(
               appBar: AppBar(
-                title: Text(
-                  'Cat Connect',
-                  style: TextStyle(
-                    fontSize: 25, // Aumenta la dimensione del font
-                    fontWeight: FontWeight.bold, // Font in grassetto
-                    fontFamily: 'Roboto', // Usa un font personalizzato (se ne hai uno)
-                    color: Color.fromARGB(211, 28, 109, 202), // Colore viola per il titolo
-                    shadows: [
-                      Shadow(
-                        offset: Offset(2, 2), // Ombra del titolo
-                        blurRadius: 5, // Raggio della sfocatura dell'ombra
-                        color: Colors.black.withOpacity(0.2), // Colore dell'ombra
+                title: Row(
+                  mainAxisSize: MainAxisSize
+                      .min, // Mantiene gli elementi centrati e compatti
+                  children: [
+                    Icon(Icons.pets,
+                        color: Colors.black, size: 30), // Zampetta a sinistra
+                    const SizedBox(width: 8), // Spazio tra icona e testo
+                    Text(
+                      'Cat Connect',
+                      style: GoogleFonts.londrinaSolid(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 8), // Spazio tra testo e icona
+                    Icon(Icons.pets,
+                        color: Colors.black, size: 30), // Zampetta a destra
+                  ],
                 ),
-                backgroundColor: Color.fromARGB(202, 247, 179, 101), // Colore di sfondo dell'AppBar
+                centerTitle: true, // Mantiene il tutto centrato
+                backgroundColor: Colors.white,
                 foregroundColor: Color(0x548ac6), // Colore del titolo
               ),
               body: _widgetOptions.elementAt(_selectedIndex),
               bottomNavigationBar: Container(
                 decoration: const BoxDecoration(
-                  color: Color.fromARGB(211, 28, 109, 202), // Viola
+                  color: Colors.black, // Viola
                 ),
                 child: BottomNavigationBar(
                   backgroundColor: Colors.transparent,

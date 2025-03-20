@@ -18,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     loadPosts();
   }
-
+  //
   Future<void> loadPosts() async {
     final String response = await rootBundle.loadString('assets/posts.json');
     setState(() {
