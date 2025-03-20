@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-//importo le varie schermate
+// Importo le varie schermate
 import 'account.dart';
 import 'add_post.dart';
 import 'home.dart';
 import 'search.dart';
 import 'login.dart';
-//import delle librerie utilizzate
 
 void main() {
   runApp(MyApp());
@@ -20,7 +19,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   int _selectedIndex = 0; // Indice della schermata selezionata
-    bool _isLoggedIn = true;
+  bool _isLoggedIn = true;
 
   // Lista delle schermate per la BottomNavigationBar
   static List<Widget> _widgetOptions = <Widget>[
@@ -30,14 +29,14 @@ class _MyAppState extends State<MyApp> {
     AccountScreen(),
   ];
 
-//setState del nuovo indice della pagina
+  // Aggiorna l'indice della pagina selezionata
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
 
-    // Funzione per gestire il login
+  // Funzione per gestire il login
   void _handleLogin(bool isLoggedIn) {
     setState(() {
       _isLoggedIn = isLoggedIn;
@@ -45,49 +44,88 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
-    Widget build(BuildContext context) {
+  Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter App con BottomNavBar',
+      title: 'Cat Connect',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: Colors.white, // Colore di sfondo del body
+        primaryColor: const Color(0xFFFF9800), // Arancione caldo
+        scaffoldBackgroundColor: const Color(0xFFFFF3E0), // Beige chiaro
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFFFF9800), // Arancione principale
+          secondary: Color.fromARGB(255, 25, 0, 255), // Viola per accenti
+          background: Color(0xFFFFF3E0), // Beige chiaro
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFFF9800), // Colore di sfondo dell'AppBar
+          foregroundColor: Colors.white, // Colore del titolo (foreground)
+        ),
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+          backgroundColor: Color.fromARGB(255, 25, 0, 255), // Viola
+          selectedItemColor: Colors.white, // Elemento selezionato in bianco
+          unselectedItemColor: Colors.grey, // Elementi non selezionati in grigio
+          elevation: 5.0,
+        ),
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: Colors.black),
+          bodyMedium: TextStyle(color: Colors.black87),
+        ),
       ),
       home: _isLoggedIn
-          ?  Scaffold(
-        appBar: AppBar(
-          title: Text('Cat Connect'),
-        ),
-        body: _widgetOptions
-            .elementAt(_selectedIndex), // Mostra la schermata selezionata
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _selectedIndex, // Indica l'indice della schermata corrente
-          onTap: _onItemTapped, // Cambia schermata quando selezionato un item
-          backgroundColor: Colors.black, // Imposta il colore di sfondo a nero
-          selectedItemColor: Colors.black, // Colore dell'elemento selezionato (bianco)
-          unselectedItemColor: Colors.grey, // Colore degli elementi non selezionati (grigio)
-          iconSize: 35.0, // Imposta la dimensione dell'icona (35.0 è un buon valore per ingrandirle)
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.search),
-              label: 'Search',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.add),
-              label: 'Add Post',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle),
-              label: 'Account',
-            ),
-          ],
-        ),
-      )
-  
-          : LoginScreen(onLogin: _handleLogin), // Se non loggato, mostra la pagina di login
+          ? Scaffold(
+              appBar: AppBar(
+                title: Text(
+                  'Cat Connect',
+                  style: TextStyle(
+                    fontSize: 25, // Aumenta la dimensione del font
+                    fontWeight: FontWeight.bold, // Font in grassetto
+                    fontFamily: 'Roboto', // Usa un font personalizzato (se ne hai uno)
+                    color: Color.fromARGB(211, 28, 109, 202), // Colore viola per il titolo
+                    shadows: [
+                      Shadow(
+                        offset: Offset(2, 2), // Ombra del titolo
+                        blurRadius: 5, // Raggio della sfocatura dell'ombra
+                        color: Colors.black.withOpacity(0.2), // Colore dell'ombra
+                      ),
+                    ],
+                  ),
+                ),
+                backgroundColor: Color.fromARGB(202, 247, 179, 101), // Colore di sfondo dell'AppBar
+                foregroundColor: Color(0x548ac6), // Colore del titolo
+              ),
+              body: _widgetOptions.elementAt(_selectedIndex),
+              bottomNavigationBar: Container(
+                decoration: const BoxDecoration(
+                  color: Color.fromARGB(211, 28, 109, 202), // Viola
+                ),
+                child: BottomNavigationBar(
+                  backgroundColor: Colors.transparent,
+                  selectedItemColor: Colors.white,
+                  unselectedItemColor: Colors.grey,
+                  currentIndex: _selectedIndex,
+                  onTap: _onItemTapped,
+                  type: BottomNavigationBarType.fixed,
+                  items: const <BottomNavigationBarItem>[
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.home),
+                      label: 'Home',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.search),
+                      label: 'Search',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.add),
+                      label: 'Add Post',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.account_circle),
+                      label: 'Account',
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : LoginScreen(onLogin: _handleLogin),
     );
   }
 }
