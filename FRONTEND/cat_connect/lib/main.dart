@@ -21,7 +21,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   int _selectedIndex = 0; // Indice della schermata selezionata
-  bool _isLoggedIn = true;
+  bool _isLoggedIn = false;
 
   // Lista delle schermate per la BottomNavigationBar
   static List<Widget> _widgetOptions = <Widget>[
