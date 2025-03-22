@@ -1,7 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');  // Il modello User definito sopra
+const User = require('../models/User');  
+const Post = require('../models/Post');
 const router = express.Router();
 
 // Registrazione
@@ -15,7 +16,7 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Email già in uso' });
     }
 
-    // Crea un nuovo utente
+    
     const user = new User({
       username,
       email,
@@ -25,7 +26,6 @@ router.post('/register', async (req, res) => {
     // Salva l'utente nel database
     await user.save();
 
-    // Invia una risposta di successo
     res.status(201).json({ message: 'Utente registrato con successo' });
 
   } catch (error) {
@@ -59,6 +59,33 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Errore del server' });
+  }
+});
+
+//aggiungo il posto al database
+router.post('/addPost', async (req, res) => {
+  const { imageUrl, description, author } = req.body;
+
+  try {
+      const newPost = await Post.create({ imageUrl, description, author });
+
+      // Aggiungo il post nella lista dei post dell'utente
+      await User.findByIdAndUpdate(author, { $push: { posts: newPost._id } });
+
+      res.status(201).json(newPost);
+  } catch (error) {
+      res.status(500).json({ error: 'Errore nella creazione del post' });
+  }
+})
+
+//recupero tutti i post dell'utente
+router.get('/getUserPosts/:userId', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const posts = await Post.find({ author: userId }).populate('author', 'username');
+    res.status(200).json(posts);
+  } catch (error) {
+    res.status(500).json({ error: 'Errore nel recupero dei post' });
   }
 });
 

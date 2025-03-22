@@ -20,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     final response = await http.post(
-      Uri.parse('http://192.168.1.239:5000/api/auth/login'),  // Usa l'URL del tuo backend
+      Uri.parse('https://catconnect-7yg6.onrender.com/api/auth/login'),  // Usa l'URL del tuo backend
       body: json.encode({
         'email': _emailController.text,
         'password': _passwordController.text,
@@ -39,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _register() async {
     final response = await http.post(
-      Uri.parse('http://192.168.1.239:5000/api/auth/register'),  // Usa l'URL del tuo backend
+      Uri.parse('https://catconnect-7yg6.onrender.com/api/auth/register'),  // Usa l'URL del tuo backend
       body: json.encode({
         'username': _usernameController.text,
         'email': _emailController.text,

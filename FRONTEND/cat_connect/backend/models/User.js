@@ -5,7 +5,8 @@ const bcrypt = require('bcryptjs');  // Per criptare la password
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true }
+  password: { type: String, required: true },
+  posts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }]
 });
 
 // Pre-save middleware per criptare la password prima di salvarla nel DB
