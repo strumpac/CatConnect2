@@ -123,4 +123,23 @@ router.get('/me', authMiddleware, async (req, res) => {
   }
 });
 
+router.get('/searchUsers', async (req, res) => {
+  try {
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ message: 'Nessun termine di ricerca fornito' });
+    }
+
+    const users = await User.find({ 
+      username: { $regex: query, $options: 'i' } 
+    }).select('username profilePictureUrl');
+
+    res.json(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Errore nel recupero degli utenti' });
+  }
+});
+
+
 module.exports = router;
