@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'searched.dart'; // Importa la schermata SearchedUserScreen
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -11,6 +13,7 @@ class _SearchScreenState extends State<SearchScreen> {
   TextEditingController _searchController = TextEditingController();
   List<Map<String, String>> _searchResults = [];
   bool _isLoading = false;
+  String? _errorMessage;
 
   // Funzione per cercare gli utenti
   Future<void> _searchUsers(String query) async {
@@ -25,9 +28,25 @@ class _SearchScreenState extends State<SearchScreen> {
       _isLoading = true;
     });
 
+    // Ottieni il token dal SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken'); // Ottieni il token memorizzato
+
+    if (token == null) {
+      setState(() {
+        _errorMessage = 'Non trovato il token. Effettua il login.';
+        _isLoading = false;
+      });
+      return;
+    }
+
     try {
-      final response = await http.get(Uri.parse(
-          'http://192.168.1.239:5000/api/auth/searchUsers?query=$query'));
+      final response = await http.get(
+        Uri.parse('http://10.1.0.13:5000/api/auth/searchUsers?query=$query'),
+        headers: {
+          'Authorization': token // Aggiungi il token nel formato Bearer
+        },
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -35,13 +54,22 @@ class _SearchScreenState extends State<SearchScreen> {
           _searchResults = data
               .map((user) => {
                     'username': user['username'].toString(),
-                    'profilePictureUrl': user['profilePictureUrl'].toString()
+                    'profilePictureUrl': user['profilePictureUrl'].toString(),
+                    'userId':
+                        user['_id'].toString() // Aggiungi l'ID dell'utente
                   })
               .toList();
         });
+      } else {
+        setState(() {
+          _errorMessage =
+              'Errore nella ricerca: ${response.statusCode}, ${response.body}';
+        });
       }
     } catch (e) {
-      print('Errore nella ricerca: $e');
+      setState(() {
+        _errorMessage = 'Errore nella ricerca: $e';
+      });
     } finally {
       setState(() {
         _isLoading = false;
@@ -52,6 +80,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text('Cerca Utenti')),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -95,10 +124,29 @@ class _SearchScreenState extends State<SearchScreen> {
                                         ['profilePictureUrl']!),
                               ),
                               title: Text(_searchResults[index]['username']!),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SearchedUserScreen(
+                                        userId: _searchResults[index]
+                                            ['userId']!),
+                                  ),
+                                );
+                              },
                             );
                           },
                         ),
             ),
+            // Mostra errori se ci sono
+            if (_errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  _errorMessage!,
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
           ],
         ),
       ),
