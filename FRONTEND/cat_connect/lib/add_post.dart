@@ -101,7 +101,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
   }
 
   Future<void> _sendPost() async {
-    const String apiUrl = 'http://172.20.10.3:5000/api/auth/addPost'; // Cambia con il tuo endpoint
+    const String apiUrl = 'http://10.1.0.13:5000/api/auth/addPost'; // Cambia con il tuo endpoint
 
     try {
       final response = await http.post(
