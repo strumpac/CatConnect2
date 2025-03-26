@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
+import 'dart:io';
+import 'package:cloudinary_public/cloudinary_public.dart';
+import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,9 +20,23 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isRegistering = false;
   bool _isLoading = false;
   String? _errorMessage;
+  File? _profileImage;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+
+  final cloudinary = CloudinaryPublic('dzyi6fulj', 'cat_connect', cache: false);
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _profileImage = File(pickedFile.path);
+      });
+    }
+  }
 
   Future<void> _login() async {
     setState(() {
@@ -36,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.239:5000/api/auth/login'),
+        Uri.parse('http://10.1.0.13:5000/api/auth/login'),
         body: json.encode({
           'email': _emailController.text,
           'password': _passwordController.text,
@@ -50,17 +68,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final token = data['token']; // Estrai il token dalla risposta
+        final token = data['token'];
 
-        // Salva il token JWT nei SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         prefs.setString('authToken', token);
         print('Token salvato: $token');
 
-        // Notifica il widget principale che l'utente ha effettuato il login
         widget.onLogin(true);
       } else {
-        print('Errore nel login: ${response.statusCode}, ${response.body}');
         setState(() {
           _errorMessage = "Errore nel login.";
         });
@@ -73,63 +88,132 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _register() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    String? imageUrl;
+
+    if (_profileImage != null) {
+      try {
+        CloudinaryResponse response = await cloudinary.uploadFile(
+          CloudinaryFile.fromFile(_profileImage!.path, resourceType: CloudinaryResourceType.Image),
+        );
+        imageUrl = response.secureUrl;
+      } on DioException catch (e) {
+        print('DioException: ${e.message}');
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      } on CloudinaryException catch (e) {
+        print(e.message);
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+    }
+
+    final response = await http.post(
+      Uri.parse('http://10.1.0.13:5000/api/auth/register'),
+      body: json.encode({
+        'username': _usernameController.text,
+        'email': _emailController.text,
+        'password': _passwordController.text,
+        'profilePictureUrl': imageUrl,
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (response.statusCode == 201) {
+      _login();
+    } else {
+      setState(() {
+        _errorMessage = "Errore nella registrazione.";
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFFF3E0),
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
-              SizedBox(height: 50),
+              const SizedBox(height: 50),
               Text(
                 _isRegistering ? 'Registrati' : 'Accedi',
-                style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 20),
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  labelStyle: TextStyle(color: Colors.black),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
+              const SizedBox(height: 20),
+              if (_isRegistering)
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
+                    child: _profileImage == null ? const Icon(Icons.camera_alt, size: 50) : null,
                   ),
                 ),
-                keyboardType: TextInputType.emailAddress,
+              const SizedBox(height: 20),
+              if (_isRegistering)
+                TextField(
+                  controller: _usernameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Username',
+                    labelStyle: TextStyle(color: Colors.black),
+                  ),
+                ),
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: TextStyle(color: Colors.black),
+                ),
               ),
               TextField(
                 controller: _passwordController,
-                decoration: InputDecoration(
+                obscureText: true,
+                decoration: const InputDecoration(
                   labelText: 'Password',
                   labelStyle: TextStyle(color: Colors.black),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
                 ),
-                obscureText: true,
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               if (_errorMessage != null)
                 Text(
                   _errorMessage!,
-                  style: TextStyle(color: Colors.red),
+                  style: const TextStyle(color: Colors.red),
                 ),
               if (_isLoading)
-                CircularProgressIndicator(),
-              Visibility(
-                visible: !_isLoading,
-                child: ElevatedButton(
-                  onPressed: _login,
+                const CircularProgressIndicator(),
+              if (!_isLoading)
+                ElevatedButton(
+                  onPressed: _isRegistering ? _register : _login,
                   child: Text(
                     _isRegistering ? 'Registrati' : 'Accedi',
-                    style: TextStyle(color: Colors.black),
+                    style: const TextStyle(color: Colors.black),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 40),
-                    textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _isRegistering = !_isRegistering;
+                  });
+                },
+                child: Text(
+                  _isRegistering ? 'Hai già un account? Accedi' : 'Non hai un account? Registrati',
+                  style: const TextStyle(color: Colors.blue),
                 ),
               ),
             ],
