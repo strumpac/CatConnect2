@@ -41,6 +41,7 @@ class _SearchScreenState extends State<SearchScreen> {
     }
 
     try {
+    main
       final response = await http.get(
         Uri.parse('http://10.1.0.13:5000/api/auth/searchUsers?query=$query'),
         headers: {

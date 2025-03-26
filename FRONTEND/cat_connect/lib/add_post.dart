@@ -8,6 +8,9 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:image/image.dart' as img;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloudinary_public/cloudinary_public.dart';
+import 'package:dio/dio.dart';
 
 class AddPostScreen extends StatefulWidget {
   @override
@@ -20,6 +23,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
   Color _backgroundColor = Colors.white;
   bool _showPostForm = false;
   final TextEditingController _descriptionController = TextEditingController();
+  String userID = '';
+  String imageURL = '';
+  String filePath = '';
+  final cloudinary = CloudinaryPublic('dzyi6fulj', 'cat_connect', cache: false);
 
   @override
   void initState() {
@@ -48,6 +55,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
     if (pickedFile == null) return;
 
     final image = File(pickedFile.path);
+    filePath=pickedFile.path;
     _predictImage(image);
   }
 
@@ -90,27 +98,82 @@ class _AddPostScreenState extends State<AddPostScreen> {
     setState(() {
       if (prediction < 0.1) {
         _result = "È un gatto!";
-        _backgroundColor = Colors.lightGreenAccent;
+        _backgroundColor = const Color.fromARGB(255, 135, 233, 135);
         _showPostForm = true;
       } else {
         _result = "Non è un gatto";
-        _backgroundColor = Colors.redAccent;
+        _backgroundColor = const Color.fromARGB(255, 243, 173, 173);
         _showPostForm = false;
       }
     });
   }
 
   Future<void> _sendPost() async {
-    const String apiUrl = 'http://10.1.0.13:5000/api/auth/addPost'; // Cambia con il tuo endpoint
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
+    try {
+        CloudinaryResponse response = await cloudinary.uploadFile(
+          CloudinaryFile.fromFile(filePath, resourceType: CloudinaryResourceType.Image),
+        );
+        imageURL = response.secureUrl;
+        print("URL immagine: $imageURL"); 
+      } on DioException catch (e) {
+        print('DioException: ${e.message}');
+        setState(() {
+          
+        });
+        return;
+      } on CloudinaryException catch (e) {
+        print(e.message);
+        setState(() {
+          
+        });
+        return;
+      }
+    
+     if (token == null) {
+      setState(() {
+        
+      });
+      return;
+    }
+
+    //try {
+    //   final response = await http.get(
+    //     Uri.parse('http://10.1.0.13:5000/api/auth/me'),
+    //     headers: {'Authorization': token},
+    //   );
+
+    //   if (response.statusCode == 200) {
+    //     final data = json.decode(response.body);
+          
+
+    //     setState(() {
+    //       userID = data['id'];
+    //       _descriptionController.text = userID;
+    //     });
+    //   } else {
+    //     setState(() {
+    //       _descriptionController.text = 'erroraccio1';
+    //     });
+    //   }
+    // } catch (e) {
+    //   setState(() {
+    //     _descriptionController.text = 'erroraccio2';
+    //   });
+    // }
+
+    const String apiUrl = 'http://10.1.0.6:5000/api/auth/addPost'; 
 
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'imageUrl': 'bo ancora non lo so', 
+          'imageUrl': imageURL, 
           'description': _descriptionController.text,
-          'author': '67ded16dbad26670aa49f015', // Inserisci l'ID dell'autore
+          'author': '67ded16dbad26670aa49f015', 
         }),
       );
 
