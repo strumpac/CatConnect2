@@ -98,7 +98,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_profileImage != null) {
       try {
         CloudinaryResponse response = await cloudinary.uploadFile(
-          CloudinaryFile.fromFile(_profileImage!.path, resourceType: CloudinaryResourceType.Image),
+          CloudinaryFile.fromFile(_profileImage!.path,
+              resourceType: CloudinaryResourceType.Image),
         );
         imageUrl = response.secureUrl;
       } on DioException catch (e) {
@@ -152,7 +153,8 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 50),
               Text(
                 _isRegistering ? 'Registrati' : 'Accedi',
-                style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               if (_isRegistering)
@@ -161,8 +163,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.grey[300],
-                    backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
-                    child: _profileImage == null ? const Icon(Icons.camera_alt, size: 50) : null,
+                    backgroundImage: _profileImage != null
+                        ? FileImage(_profileImage!)
+                        : null,
+                    child: _profileImage == null
+                        ? const Icon(Icons.camera_alt, size: 50)
+                        : null,
                   ),
                 ),
               const SizedBox(height: 20),
@@ -195,15 +201,24 @@ class _LoginScreenState extends State<LoginScreen> {
                   _errorMessage!,
                   style: const TextStyle(color: Colors.red),
                 ),
-              if (_isLoading)
-                const CircularProgressIndicator(),
+              if (_isLoading) const CircularProgressIndicator(),
               if (!_isLoading)
                 ElevatedButton(
-                  onPressed: _isRegistering ? _register : _login,
-                  child: Text(
-                    _isRegistering ? 'Registrati' : 'Accedi',
-                    style: const TextStyle(color: Colors.black),
-                  ),
+                  onPressed:
+                      _isLoading ? null : (_isRegistering ? _register : _login),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          _isRegistering ? 'Registrati' : 'Accedi',
+                          style: const TextStyle(color: Colors.black),
+                        ),
                 ),
               TextButton(
                 onPressed: () {
@@ -212,7 +227,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   });
                 },
                 child: Text(
-                  _isRegistering ? 'Hai già un account? Accedi' : 'Non hai un account? Registrati',
+                  _isRegistering
+                      ? 'Hai già un account? Accedi'
+                      : 'Non hai un account? Registrati',
                   style: const TextStyle(color: Colors.blue),
                 ),
               ),

@@ -7,6 +7,7 @@ import 'add_post.dart';
 import 'home.dart';
 import 'search.dart';
 import 'login.dart';
+import 'searched.dart';
 
 void main() {
   runApp(MyApp());

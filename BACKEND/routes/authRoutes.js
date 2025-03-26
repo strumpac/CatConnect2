@@ -125,17 +125,22 @@ router.get('/me', authMiddleware, async (req, res) => {
   }
 });
 
-router.get('/searchUsers', async (req, res) => {
+router.get('/searchUsers', authMiddleware, async (req, res) => {
   try {
     const { query } = req.query;
+    const userId = req.user.id;  // ID dell'utente loggato
+    console.log(userId);
     if (!query) {
       return res.status(400).json({ message: 'Nessun termine di ricerca fornito' });
     }
 
+    // Ricerca degli utenti, escludendo l'utente autenticato
     const users = await User.find({ 
-      username: { $regex: query, $options: 'i' } 
+      username: { $regex: query, $options: 'i' },
+      _id: { $ne: userId }  // Esclude l'utente che sta effettuando la ricerca
     }).select('username profilePictureUrl');
 
+    console.log(userId);
     res.json(users);
   } catch (error) {
     console.error(error);
@@ -143,5 +148,31 @@ router.get('/searchUsers', async (req, res) => {
   }
 });
 
+router.get('/user/:userId', async (req, res) => {
+  const { userId } = req.params;  // Ottieni l'userId dalla URL
+  
+  try {
+    // Trova l'utente nel database con il suo userId
+    const user = await User.findById(userId);
+
+    // Se l'utente non esiste, restituisci un errore 404
+    if (!user) {
+      return res.status(404).json({ message: 'Utente non trovato' });
+    }
+
+    // Se l'utente esiste, restituisci i dettagli dell'utente
+    res.status(200).json({
+      username: user.username,
+      email: user.email,
+      profilePictureUrl: user.profilePictureUrl,
+      followers: user.followers,
+      following: user.following,
+      posts: user.posts,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Errore nel recupero dell\'utente' });
+  }
+});
 
 module.exports = router;
