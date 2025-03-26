@@ -75,29 +75,29 @@ class _MyAppState extends State<MyApp> {
       home: _isLoggedIn
           ? Scaffold(
               appBar: AppBar(
+                toolbarHeight: 48, // Altezza ridotta della barra
                 title: Row(
-                  mainAxisSize: MainAxisSize
-                      .min, // Mantiene gli elementi centrati e compatti
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.pets,
-                        color: Colors.black, size: 30), // Zampetta a sinistra
-                    const SizedBox(width: 8), // Spazio tra icona e testo
+                        color: Colors.black, size: 24), // Icona più piccola
+                    const SizedBox(width: 6),
                     Text(
                       'Cat Connect',
                       style: GoogleFonts.londrinaSolid(
-                        fontSize: 40,
+                        fontSize: 30, // Font più piccolo
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(width: 8), // Spazio tra testo e icona
+                    const SizedBox(width: 6),
                     Icon(Icons.pets,
-                        color: Colors.black, size: 30), // Zampetta a destra
+                        color: Colors.black, size: 24), // Icona più piccola
                   ],
                 ),
-                centerTitle: true, // Mantiene il tutto centrato
+                centerTitle: true,
                 backgroundColor: Colors.white,
-                foregroundColor: Color(0x548ac6), // Colore del titolo
+                foregroundColor: const Color(0x548ac6),
               ),
               body: _widgetOptions.elementAt(_selectedIndex),
               bottomNavigationBar: Container(

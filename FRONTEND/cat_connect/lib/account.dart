@@ -39,18 +39,13 @@ class _AccountScreenState extends State<AccountScreen> {
     }
 
     try {
-      print('token utilizzato: $token');
       final response = await http.get(
-        Uri.parse('http://192.168.1.239:5000/api/auth/me'), // Usa la nuova rotta /me
+        Uri.parse('http://192.168.1.239:5000/api/auth/me'),
         headers: {'Authorization': token},
       );
 
-      print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('Data received: $data'); // Aggiungi questa linea per debug
 
         setState(() {
           username = data['username'];
@@ -82,59 +77,67 @@ class _AccountScreenState extends State<AccountScreen> {
       appBar: AppBar(title: Text('Account')),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Foto di profilo e informazioni dell'utente
-                    Row(
+          : CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundImage: NetworkImage(profileImageUrl),
-                        ),
-                        SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        // Foto di profilo e informazioni dell'utente
+                        Row(
                           children: [
-                            Text(
-                              username,
-                              style: TextStyle(
-                                  fontSize: 22, fontWeight: FontWeight.bold),
+                            CircleAvatar(
+                              radius: 50,
+                              backgroundImage: NetworkImage(profileImageUrl),
                             ),
-                            SizedBox(height: 8),
-                            Text(
-                                '$followers followers  •  $following following'),
+                            SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  username,
+                                  style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                    '$followers followers  •  $following following'),
+                              ],
+                            ),
                           ],
                         ),
+                        SizedBox(height: 20),
+                        // Sezione post dell'utente
+                        Text(
+                          'Post ($posts)',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 10),
                       ],
                     ),
-                    SizedBox(height: 20),
-
-                    // Sezione post dell'utente
-                    Text(
-                      'Post ($posts)',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 10),
-
-                    // Griglia di post dell'utente
-                    userPosts.isEmpty
-                        ? Center(child: Text('Non ci sono post disponibili'))
-                        : GridView.builder(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                            ),
-                            itemCount: userPosts.length,
-                            itemBuilder: (context, index) {
+                  ),
+                ),
+                userPosts.isEmpty
+                    ? SliverFillRemaining(
+                        child: Center(
+                          child: Text('Non ci sono post disponibili'),
+                        ),
+                      )
+                    : SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        sliver: SliverGrid(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                          ),
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
                               return ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: Image.network(
@@ -143,18 +146,21 @@ class _AccountScreenState extends State<AccountScreen> {
                                 ),
                               );
                             },
+                            childCount: userPosts.length,
                           ),
-                    if (_errorMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: Text(
-                          _errorMessage!,
-                          style: TextStyle(color: Colors.red),
                         ),
                       ),
-                  ],
-                ),
-              ),
+                if (_errorMessage != null)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        _errorMessage!,
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ),
+              ],
             ),
     );
   }
