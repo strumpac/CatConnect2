@@ -27,7 +27,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
     try {
       final response = await http.get(Uri.parse(
-          'http://192.168.1.239:5000/api/auth/searchUsers?query=$query'));
+          'http://10.1.0.6:5000/api/auth/searchUsers?query=$query'));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);

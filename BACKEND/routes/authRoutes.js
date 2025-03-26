@@ -76,10 +76,11 @@ router.post('/login', async (req, res) => {
 // Aggiungo il posto al database
 router.post('/addPost', async (req, res) => {
   const { imageUrl, description, author } = req.body;
+  
 
   try {
     const newPost = await Post.create({ imageUrl, description, author });
-
+    console.log(newPost)
     // Aggiungo il post nella lista dei post dell'utente
     await User.findByIdAndUpdate(author, { $push: { posts: newPost._id } });
 
@@ -111,6 +112,7 @@ router.get('/me', authMiddleware, async (req, res) => {
     }
 
     res.json({
+      id: userId,
       username: user.username,
       email: user.email,
       profilePictureUrl: user.profilePictureUrl,
