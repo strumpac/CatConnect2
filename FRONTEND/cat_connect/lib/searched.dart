@@ -35,7 +35,7 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.1.0.13:5000/api/auth/user/${widget.userId}'),
+        Uri.parse('http://192.168.1.239:5000/api/auth/user/${widget.userId}'),
       );
 
       if (response.statusCode == 200) {

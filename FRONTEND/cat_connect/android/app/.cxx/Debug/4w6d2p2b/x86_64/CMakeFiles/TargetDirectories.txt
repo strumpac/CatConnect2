@@ -1,0 +1,2 @@
+C:/Users/Bikers/Desktop/CatConnect/FRONTEND/cat_connect/android/app/.cxx/Debug/4w6d2p2b/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/Bikers/Desktop/CatConnect/FRONTEND/cat_connect/android/app/.cxx/Debug/4w6d2p2b/x86_64/CMakeFiles/rebuild_cache.dir

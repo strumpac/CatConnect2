@@ -55,7 +55,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
     if (pickedFile == null) return;
 
     final image = File(pickedFile.path);
-    filePath=pickedFile.path;
+    filePath = pickedFile.path;
     _predictImage(image);
   }
 
@@ -72,7 +72,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
       return;
     }
 
-    img.Image resizedImage = img.copyResize(imageInput, width: 224, height: 224);
+    img.Image resizedImage =
+        img.copyResize(imageInput, width: 224, height: 224);
 
     var input = Float32List(1 * 224 * 224 * 3);
     var pixelIndex = 0;
@@ -89,7 +90,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
     var outputShape = _interpreter.getOutputTensor(0).shape;
 
     var inputArray = input.reshape(inputShape);
-    var outputArray = List.generate(outputShape[0], (_) => List.filled(outputShape[1], 0.0));
+    var outputArray =
+        List.generate(outputShape[0], (_) => List.filled(outputShape[1], 0.0));
 
     _interpreter.run(inputArray, outputArray);
 
@@ -109,71 +111,74 @@ class _AddPostScreenState extends State<AddPostScreen> {
   }
 
   Future<void> _sendPost() async {
-
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');
     try {
-        CloudinaryResponse response = await cloudinary.uploadFile(
-          CloudinaryFile.fromFile(filePath, resourceType: CloudinaryResourceType.Image),
-        );
-        imageURL = response.secureUrl;
-        print("URL immagine: $imageURL"); 
-      } on DioException catch (e) {
-        print('DioException: ${e.message}');
-        setState(() {
-          
-        });
-        return;
-      } on CloudinaryException catch (e) {
-        print(e.message);
-        setState(() {
-          
-        });
-        return;
-      }
-    
-     if (token == null) {
-      setState(() {
-        
-      });
+      CloudinaryResponse response = await cloudinary.uploadFile(
+        CloudinaryFile.fromFile(filePath,
+            resourceType: CloudinaryResourceType.Image),
+      );
+      imageURL = response.secureUrl;
+      print("URL immagine: $imageURL");
+    } on DioException catch (e) {
+      print('DioException: ${e.message}');
+      setState(() {});
+      return;
+    } on CloudinaryException catch (e) {
+      print(e.message);
+      setState(() {});
       return;
     }
 
-    //try {
-    //   final response = await http.get(
-    //     Uri.parse('http://10.1.0.13:5000/api/auth/me'),
-    //     headers: {'Authorization': token},
-    //   );
+    if (token == null) {
+      setState(() {});
+      return;
+    }
 
-    //   if (response.statusCode == 200) {
-    //     final data = json.decode(response.body);
-          
+    try {
+      final response = await http.get(
+        Uri.parse('http://192.168.1.239:5000/api/auth/me'),
+        headers: {
+          'Authorization': '$token'
+        },
+      );
 
-    //     setState(() {
-    //       userID = data['id'];
-    //       _descriptionController.text = userID;
-    //     });
-    //   } else {
-    //     setState(() {
-    //       _descriptionController.text = 'erroraccio1';
-    //     });
-    //   }
-    // } catch (e) {
-    //   setState(() {
-    //     _descriptionController.text = 'erroraccio2';
-    //   });
-    // }
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
 
-    const String apiUrl = 'http://10.1.0.6:5000/api/auth/addPost'; 
+        if (data['id'] != null) {
+          setState(() {
+            userID = data['id'];
+            _descriptionController.text =
+                userID; 
+          });
+        } else {
+          setState(() {
+            _descriptionController.text = 'ID non trovato';
+          });
+        }
+      } else {
+        setState(() {
+          _descriptionController.text =
+              'Errore nella risposta: ${response.statusCode}';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _descriptionController.text = 'Errore durante la richiesta: $e';
+      });
+    }
+
+    const String apiUrl = 'http://192.168.1.239:5000/api/auth/addPost';
 
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'imageUrl': imageURL, 
+          'imageUrl': imageURL,
           'description': _descriptionController.text,
-          'author': '67ded16dbad26670aa49f015', 
+          'author': '$userID',
         }),
       );
 
@@ -183,7 +188,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Errore durante la pubblicazione del post')),
+          const SnackBar(
+              content: Text('Errore durante la pubblicazione del post')),
         );
       }
     } catch (error) {
@@ -210,7 +216,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
             if (_showPostForm) ...[
               TextField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Descrizione del post'),
+                decoration:
+                    const InputDecoration(labelText: 'Descrizione del post'),
               ),
               SizedBox(height: 10),
               ElevatedButton(

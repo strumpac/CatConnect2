@@ -76,13 +76,20 @@ router.post('/login', async (req, res) => {
 // Aggiungo il posto al database
 router.post('/addPost', async (req, res) => {
   const { imageUrl, description, author } = req.body;
-  
 
   try {
+    // Crea un nuovo post
     const newPost = await Post.create({ imageUrl, description, author });
-    console.log(newPost)
-    // Aggiungo il post nella lista dei post dell'utente
-    await User.findByIdAndUpdate(author, { $push: { posts: newPost._id } });
+    console.log(newPost);
+
+    // Aggiungi l'ID del post appena creato nell'array 'posts' dell'utente
+    const user = await User.findById(author);
+    console.log(author);
+    console.log(user)
+    if (user) {
+      user.posts.push(newPost._id);  // Aggiungi il nuovo post all'array posts
+      await user.save();  // Salva l'utente con l'array aggiornato
+    }
 
     res.status(201).json(newPost);
   } catch (error) {
