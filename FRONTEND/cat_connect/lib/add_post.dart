@@ -26,11 +26,13 @@ class _AddPostScreenState extends State<AddPostScreen> {
   String userID = '';
   String imageURL = '';
   String filePath = '';
+  bool _isLoading = false;
   final cloudinary = CloudinaryPublic('dzyi6fulj', 'cat_connect', cache: false);
 
   @override
   void initState() {
     super.initState();
+    _pickImage(); // Automatically open the image picker on page load
     _loadModel();
   }
 
@@ -99,11 +101,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
     setState(() {
       if (prediction < 0.1) {
-        _result = "È un gatto!";
         _backgroundColor = const Color.fromARGB(255, 135, 233, 135);
         _showPostForm = true;
       } else {
-        _result = "Non è un gatto";
         _backgroundColor = const Color.fromARGB(255, 243, 173, 173);
         _showPostForm = false;
       }
@@ -111,6 +111,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
   }
 
   Future<void> _sendPost() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');
     try {
@@ -122,16 +126,22 @@ class _AddPostScreenState extends State<AddPostScreen> {
       print("URL immagine: $imageURL");
     } on DioException catch (e) {
       print('DioException: ${e.message}');
-      setState(() {});
+      setState(() {
+        _isLoading = false;
+      });
       return;
     } on CloudinaryException catch (e) {
       print(e.message);
-      setState(() {});
+      setState(() {
+        _isLoading = false;
+      });
       return;
     }
 
     if (token == null) {
-      setState(() {});
+      setState(() {
+        _isLoading = false;
+      });
       return;
     }
 
@@ -149,12 +159,6 @@ class _AddPostScreenState extends State<AddPostScreen> {
         if (data['id'] != null) {
           setState(() {
             userID = data['id'];
-            _descriptionController.text =
-                userID; 
-          });
-        } else {
-          setState(() {
-            _descriptionController.text = 'ID non trovato';
           });
         }
       } else {
@@ -188,14 +192,17 @@ class _AddPostScreenState extends State<AddPostScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Errore durante la pubblicazione del post')),
+          const SnackBar(content: Text('Errore durante la pubblicazione del post')),
         );
       }
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Errore di connessione: $error')),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -207,22 +214,37 @@ class _AddPostScreenState extends State<AddPostScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton(
-              onPressed: _pickImage,
-              child: Text('Carica un\'immagine'),
-            ),
+            if (filePath.isNotEmpty)
+              Image.file(
+                File(filePath),
+                width: 200,
+                height: 200,
+                fit: BoxFit.cover,
+              ),
             SizedBox(height: 20),
-            Text(_result, style: TextStyle(fontSize: 24)),
-            if (_showPostForm) ...[
+            if (_backgroundColor == const Color.fromARGB(255, 243, 173, 173)) ...[
+              ElevatedButton(
+                onPressed: _pickImage,
+                child: const Text(
+                  'Carica un\'altra immagine',
+                  style: TextStyle(color: Colors.black), // Text color black
+                ),
+              ),
+            ],
+            if (_isLoading)
+              CircularProgressIndicator()
+            else if (_showPostForm) ...[
               TextField(
                 controller: _descriptionController,
-                decoration:
-                    const InputDecoration(labelText: 'Descrizione del post'),
+                decoration: const InputDecoration(labelText: 'Descrizione del post'),
               ),
               SizedBox(height: 10),
               ElevatedButton(
                 onPressed: _sendPost,
-                child: const Text('Invia Post'),
+                child: const Text(
+                  'Invia Post',
+                  style: TextStyle(color: Colors.black), // Text color black
+                ),
               ),
             ],
           ],
