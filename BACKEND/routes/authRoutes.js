@@ -187,4 +187,42 @@ router.get('/user/:userId', async (req, res) => {
   }
 });
 
+router.post('/addFollowing', async (req, res) => {
+  const myId = req.body;
+  const otherId = req.body;
+
+  try {
+    const user = await User.findById(myId);
+    console.log(myId);
+    console.log(user)
+    if (user) {
+      user.following.push(otherId);  
+      await user.save(); 
+    }
+
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'Errore nell following' });
+  }
+});
+
+router.post('/addFollower', async (req, res) => {
+  const myId = req.body;
+  const otherId = req.body;
+
+  try {
+    const user = await User.findById(otherId);
+    console.log(otherId);
+    console.log(user)
+    if (user) {
+      user.follower.push(myId);  
+      await user.save(); 
+    }
+
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'Errore nell follower' });
+  }
+});
+
 module.exports = router;

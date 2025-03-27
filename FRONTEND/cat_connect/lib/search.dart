@@ -44,7 +44,7 @@ class _SearchScreenState extends State<SearchScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-            'http://192.168.1.239:5000/api/auth/searchUsers?query=$query'),
+            'http://192.168.1.107:5000/api/auth/searchUsers?query=$query'),
         headers: {
           'Authorization': token // Aggiungi il token nel formato Bearer
         },
