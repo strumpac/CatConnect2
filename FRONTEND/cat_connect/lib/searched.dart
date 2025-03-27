@@ -38,7 +38,7 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.107:5000/api/auth/user/${widget.userId}'),
+        Uri.parse('http://192.168.1.239:5000/api/auth/user/${widget.userId}'),
       );
 
       if (response.statusCode == 200) {
@@ -74,7 +74,7 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.107:5000/api/auth/me'),
+        Uri.parse('http://192.168.1.239:5000/api/auth/me'),
         headers: {
           'Authorization': '$token'
         },
@@ -103,7 +103,7 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
       _isFollowing = !_isFollowing; // Inverte lo stato del follow
     });
 
-    const String apiUrl1 = 'http://192.168.1.107:5000/api/auth/addFollowing';
+    const String apiUrl1 = 'http://192.168.1.239:5000/api/auth/addFollowing';
 
     try {
       final response = await http.post(
@@ -130,7 +130,7 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
       );
     }
 
-     const String apiUrl2 = 'http://192.168.1.107:5000/api/auth/addFollower';
+     const String apiUrl2 = 'http://192.168.1.239:5000/api/auth/addFollower';
 
     try {
       final response = await http.post(
