@@ -26,7 +26,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
   String userID = '';
   String imageURL = '';
   String filePath = '';
-  bool _isLoading = false;
+  bool _isLoading = false; // Flag per la rotella di caricamento
+  bool _showButton =
+      false; // Flag per mostrare il bottone "Carica un'altra immagine"
   final cloudinary = CloudinaryPublic('dzyi6fulj', 'cat_connect', cache: false);
 
   @override
@@ -62,6 +64,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
   }
 
   Future<void> _predictImage(File image) async {
+    setState(() {
+      _isLoading = true; // Mostra la rotella di caricamento
+    });
+
     final imageBytes = await image.readAsBytes();
     img.Image? imageInput = img.decodeImage(imageBytes);
 
@@ -70,15 +76,16 @@ class _AddPostScreenState extends State<AddPostScreen> {
         _result = "Errore nell'elaborazione dell'immagine";
         _backgroundColor = Colors.red;
         _showPostForm = false;
+        _isLoading = false; // Nascondi la rotella
       });
       return;
     }
 
     img.Image resizedImage =
         img.copyResize(imageInput, width: 224, height: 224);
-
     var input = Float32List(1 * 224 * 224 * 3);
     var pixelIndex = 0;
+
     for (int y = 0; y < resizedImage.height; y++) {
       for (int x = 0; x < resizedImage.width; x++) {
         var pixel = resizedImage.getPixel(x, y);
@@ -107,6 +114,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
         _backgroundColor = const Color.fromARGB(255, 243, 173, 173);
         _showPostForm = false;
       }
+      _isLoading = false; // Nascondi la rotella
+      _showButton = true; // Mostra il bottone "Carica un'altra immagine"
     });
   }
 
@@ -148,9 +157,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
     try {
       final response = await http.get(
         Uri.parse('http://192.168.1.239:5000/api/auth/me'),
-        headers: {
-          'Authorization': '$token'
-        },
+        headers: {'Authorization': '$token'},
       );
 
       if (response.statusCode == 200) {
@@ -192,7 +199,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Errore durante la pubblicazione del post')),
+          const SnackBar(
+              content: Text('Errore durante la pubblicazione del post')),
         );
       }
     } catch (error) {
@@ -222,28 +230,92 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 fit: BoxFit.cover,
               ),
             SizedBox(height: 20),
-            if (_backgroundColor == const Color.fromARGB(255, 243, 173, 173)) ...[
+            if (_isLoading)
+              CircularProgressIndicator(), // Mostra la rotella durante il caricamento
+            if (!_isLoading && _showButton)
               ElevatedButton(
                 onPressed: _pickImage,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white, // Colore di sfondo bianco
+                  foregroundColor: Colors.black, // Colore del testo nero
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(15), // Bordi arrotondati
+                  ),
+                  padding: EdgeInsets.symmetric(
+                      vertical: 12, horizontal: 25), // Spaziatura interna
+                  shadowColor: Colors.black.withOpacity(0.2), // Ombra leggera
+                  elevation: 5, // Elevazione per l'ombra
+                  side: BorderSide(
+                      color: Colors.grey,
+                      width: 1), // Bordo grigio per il bottone
+                ),
                 child: const Text(
-                  'Carica un\'altra immagine',
-                  style: TextStyle(color: Colors.black), // Text color black
+                  'Seleziona un\'altra immagine', // Testo del bottone
+                  style: TextStyle(
+                    fontSize: 16, // Dimensione del font
+                    fontWeight: FontWeight.bold, // Testo in grassetto
+                  ),
                 ),
               ),
-            ],
-            if (_isLoading)
-              CircularProgressIndicator()
-            else if (_showPostForm) ...[
-              TextField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Descrizione del post'),
+            if (_showPostForm) ...[
+              Padding(
+                padding: const EdgeInsets.all(8.0), // Aggiungi margine di 8px
+                child: TextField(
+                  controller: _descriptionController,
+                  decoration: InputDecoration(
+                    labelText: 'Descrizione del post',
+                    labelStyle: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: BorderSide(color: Colors.grey, width: 1),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: BorderSide(color: Colors.blue, width: 2),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: BorderSide(color: Colors.grey, width: 1),
+                    ),
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                    hintText: 'Aggiungi una descrizione...',
+                    hintStyle: TextStyle(color: Colors.grey),
+                  ),
+                  maxLines: 3,
+                  minLines: 1,
+                ),
               ),
               SizedBox(height: 10),
               ElevatedButton(
                 onPressed: _sendPost,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white, // Colore di sfondo bianco
+                  foregroundColor: Colors.black, // Colore del testo nero
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(15), // Bordi arrotondati
+                  ),
+                  padding: EdgeInsets.symmetric(
+                      vertical: 12, horizontal: 25), // Spaziatura interna
+                  shadowColor: Colors.black.withOpacity(0.2), // Ombra leggera
+                  elevation: 5, // Elevazione per l'ombra
+                  side: BorderSide(
+                      color: Colors.grey,
+                      width: 1), // Bordo grigio per il bottone
+                ),
                 child: const Text(
-                  'Invia Post',
-                  style: TextStyle(color: Colors.black), // Text color black
+                  'Carica', // Testo del bottone
+                  style: TextStyle(
+                    fontSize: 16, // Dimensione del font
+                    fontWeight: FontWeight.bold, // Testo in grassetto
+                  ),
                 ),
               ),
             ],

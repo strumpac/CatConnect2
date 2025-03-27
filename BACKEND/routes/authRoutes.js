@@ -165,7 +165,7 @@ router.get('/user/:userId', async (req, res) => {
   
   try {
     // Trova l'utente nel database con il suo userId
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).populate('posts', 'imageUrl');
 
     // Se l'utente non esiste, restituisci un errore 404
     if (!user) {
@@ -179,7 +179,7 @@ router.get('/user/:userId', async (req, res) => {
       profilePictureUrl: user.profilePictureUrl,
       followers: user.followers,
       following: user.following,
-      posts: user.posts,
+      posts: user.posts.map(post => post.imageUrl), 
     });
   } catch (error) {
     console.error(error);

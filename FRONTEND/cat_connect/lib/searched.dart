@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class SearchedUserScreen extends StatefulWidget {
-  final String? userId;  // Rendiamo userId facoltativo
+  final String? userId; // Rendiamo userId facoltativo
 
   const SearchedUserScreen({super.key, this.userId});
 
@@ -31,7 +31,8 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
 
   // Funzione per recuperare i dati dell'utente cliccato
   Future<void> _fetchUserData() async {
-    if (widget.userId == null) return; // Se userId non è passato, non fare nulla
+    if (widget.userId == null)
+      return; // Se userId non è passato, non fare nulla
 
     try {
       final response = await http.get(
@@ -52,7 +53,8 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
         });
       } else {
         setState(() {
-          _errorMessage = 'Errore nel recupero dei dati utente: ${response.statusCode}, ${response.body}';
+          _errorMessage =
+              'Errore nel recupero dei dati utente: ${response.statusCode}, ${response.body}';
           _isLoading = false;
         });
       }
@@ -67,7 +69,9 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(username.isEmpty ? 'Caricamento...' : 'Account di $username')),
+      appBar: AppBar(
+          title: Text(
+              username.isEmpty ? 'Caricamento...' : 'Account di $username')),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : CustomScrollView(
@@ -90,17 +94,22 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
                               children: [
                                 Text(
                                   username,
-                                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(height: 8),
-                                Text('$followers followers  •  $following following',
+                                Text(
+                                    '$followers followers  •  $following following',
                                     style: TextStyle(fontSize: 16)),
                               ],
                             ),
                           ],
                         ),
                         SizedBox(height: 20),
-                        Text('Post ($posts)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text('Post ($posts)',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
                         SizedBox(height: 10),
                       ],
                     ),
@@ -108,7 +117,8 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
                 ),
                 userPosts.isEmpty
                     ? SliverFillRemaining(
-                        child: Center(child: Text('Non ci sono post disponibili')),
+                        child:
+                            Center(child: Text('Non ci sono post disponibili')),
                       )
                     : SliverList(
                         delegate: SliverChildBuilderDelegate(
