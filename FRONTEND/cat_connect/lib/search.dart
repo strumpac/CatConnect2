@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'searched.dart'; // Importa la schermata SearchedUserScreen
+import 'package:cat_connect/main.dart';
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -41,9 +42,9 @@ class _SearchScreenState extends State<SearchScreen> {
     }
 
     try {
-    main
       final response = await http.get(
-        Uri.parse('http://10.1.0.13:5000/api/auth/searchUsers?query=$query'),
+        Uri.parse(
+            'http://192.168.1.239:5000/api/auth/searchUsers?query=$query'),
         headers: {
           'Authorization': token // Aggiungi il token nel formato Bearer
         },
@@ -126,14 +127,10 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                               title: Text(_searchResults[index]['username']!),
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => SearchedUserScreen(
-                                        userId: _searchResults[index]
-                                            ['userId']!),
-                                  ),
-                                );
+                                final myAppState = context
+                                    .findAncestorStateOfType<MyAppState>();
+                                myAppState?.showUserProfileScreen(
+                                    _searchResults[index]['userId']!);
                               },
                             );
                           },

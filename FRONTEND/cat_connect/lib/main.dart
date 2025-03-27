@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-//font
 import 'package:google_fonts/google_fonts.dart';
-// Importo le varie schermate
 import 'account.dart';
 import 'add_post.dart';
 import 'home.dart';
 import 'search.dart';
 import 'login.dart';
-import 'searched.dart';
+import 'searched.dart'; // Assicurati che questa sia la schermata corretta per il profilo utente cercato
 
 void main() {
   runApp(MyApp());
@@ -17,12 +15,14 @@ class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
-  _MyAppState createState() => _MyAppState();
+  MyAppState createState() => MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class MyAppState extends State<MyApp> {
   int _selectedIndex = 0; // Indice della schermata selezionata
   bool _isLoggedIn = false;
+  String?
+      _selectedUserId; // Variabile per gestire la schermata del profilo cercato
 
   // Lista delle schermate per la BottomNavigationBar
   static List<Widget> _widgetOptions = <Widget>[
@@ -36,6 +36,8 @@ class _MyAppState extends State<MyApp> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      _selectedUserId =
+          null; // Reset del profilo cercato quando si cambia schermata
     });
   }
 
@@ -43,6 +45,13 @@ class _MyAppState extends State<MyApp> {
   void _handleLogin(bool isLoggedIn) {
     setState(() {
       _isLoggedIn = isLoggedIn;
+    });
+  }
+
+  // Funzione per visualizzare il profilo utente cercato
+  void showUserProfileScreen(String userId) {
+    setState(() {
+      _selectedUserId = userId;
     });
   }
 
@@ -80,30 +89,32 @@ class _MyAppState extends State<MyApp> {
                 title: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.pets,
-                        color: Colors.black, size: 24), // Icona più piccola
+                    Icon(Icons.pets, color: Colors.black, size: 24),
                     const SizedBox(width: 6),
                     Text(
                       'Cat Connect',
                       style: GoogleFonts.londrinaSolid(
-                        fontSize: 30, // Font più piccolo
+                        fontSize: 30,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Icon(Icons.pets,
-                        color: Colors.black, size: 24), // Icona più piccola
+                    Icon(Icons.pets, color: Colors.black, size: 24),
                   ],
                 ),
                 centerTitle: true,
                 backgroundColor: Colors.white,
                 foregroundColor: const Color(0x548ac6),
               ),
-              body: _widgetOptions.elementAt(_selectedIndex),
+              body: _selectedUserId == null
+                  ? _widgetOptions.elementAt(_selectedIndex)
+                  : SearchedUserScreen(
+                      userId:
+                          _selectedUserId!), // Mostra il profilo utente se selezionato
               bottomNavigationBar: Container(
                 decoration: const BoxDecoration(
-                  color: Colors.black, // Viola
+                  color: Colors.black,
                 ),
                 child: BottomNavigationBar(
                   backgroundColor: Colors.transparent,
