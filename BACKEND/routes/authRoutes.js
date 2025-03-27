@@ -111,12 +111,16 @@ router.get('/getUserPosts/:userId', async (req, res) => {
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
-    console.log(userId)
-    const user = await User.findById(userId);
+    console.log(`ID utente: ${userId}`);
 
+    const user = await User.findById(userId).populate('posts', 'imageUrl');
+    
     if (!user) {
       return res.status(404).json({ message: 'Utente non trovato' });
     }
+
+    console.log(`User trovato:`, user);
+    console.log(`Post dell'utente (dopo populate):`, user.posts); 
 
     res.json({
       id: userId,
@@ -125,12 +129,13 @@ router.get('/me', authMiddleware, async (req, res) => {
       profilePictureUrl: user.profilePictureUrl,
       followers: user.followers,
       following: user.following,
-      posts: user.posts,
+      posts: user.posts.map(post => post.imageUrl), 
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 router.get('/searchUsers', authMiddleware, async (req, res) => {
   try {
