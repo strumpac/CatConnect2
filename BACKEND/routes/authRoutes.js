@@ -191,16 +191,18 @@ router.post('/addFollowing', async (req, res) => {
   const myId = req.body;
   const otherId = req.body;
 
+
   try {
-    const user = await User.findById(myId);
+    const myUser = await User.findById(myId);
+    const otherUser = await User.findById(otherId);
     console.log(myId);
-    console.log(user)
-    if (user) {
-      user.following.push(otherId);  
-      await user.save(); 
+    console.log(myUser)
+    if (myUser) {
+      myUser.following.push(otherUser._id);  
+      await myUser.save(); 
     }
 
-    res.status(201).json(user);
+    res.status(201).json(myUser);
   } catch (error) {
     res.status(500).json({ error: 'Errore nell following' });
   }

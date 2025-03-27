@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchedUserScreen extends StatefulWidget {
-  final String? userId; // Rendiamo userId facoltativo
+  final String? userId;  // Rendiamo userId facoltativo
 
   const SearchedUserScreen({super.key, this.userId});
 
@@ -34,12 +34,11 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
 
   // Funzione per recuperare i dati dell'utente cliccato
   Future<void> _fetchUserData() async {
-    if (widget.userId == null)
-      return; // Se userId non è passato, non fare nulla
+    if (widget.userId == null) return; // Se userId non è passato, non fare nulla
 
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.107:5000/api/auth/user/${widget.userId}'),
+        Uri.parse('http://192.168.1.239:5000/api/auth/user/${widget.userId}'),
       );
 
       if (response.statusCode == 200) {
@@ -57,8 +56,7 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
         });
       } else {
         setState(() {
-          _errorMessage =
-              'Errore nel recupero dei dati utente: ${response.statusCode}, ${response.body}';
+          _errorMessage = 'Errore nel recupero dei dati utente: ${response.statusCode}, ${response.body}';
           _isLoading = false;
         });
       }
@@ -76,7 +74,7 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.107:5000/api/auth/me'),
+        Uri.parse('http://192.168.1.239:5000/api/auth/me'),
         headers: {
           'Authorization': '$token'
         },
@@ -105,7 +103,7 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
       _isFollowing = !_isFollowing; // Inverte lo stato del follow
     });
 
-    const String apiUrl1 = 'http://192.168.1.107:5000/api/auth/addFollowing';
+    const String apiUrl1 = 'http://192.168.1.239:5000/api/auth/addFollowing';
 
     try {
       final response = await http.post(
@@ -132,7 +130,7 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
       );
     }
 
-     const String apiUrl2 = 'http://192.168.1.107:5000/api/auth/addFollower';
+     const String apiUrl2 = 'http://192.168.1.239:5000/api/auth/addFollower';
 
     try {
       final response = await http.post(
@@ -163,9 +161,7 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          title: Text(
-              username.isEmpty ? 'Caricamento...' : 'Account di $username')),
+      appBar: AppBar(title: Text(username.isEmpty ? 'Caricamento...' : 'Account di $username')),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : CustomScrollView(
@@ -188,24 +184,16 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
                               children: [
                                 Text(
                                   username,
-                                  style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold),
+                                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(height: 8),
-                                Text(
-                                    '$followers followers  •  $following following',
+                                Text('$followers followers  •  $following following',
                                     style: TextStyle(fontSize: 16)),
                               ],
                             ),
                           ],
                         ),
                         SizedBox(height: 20),
-<<<<<<< HEAD
-                        Text('Post ($posts)',
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
-=======
                         // Bottone Follow
                         ElevatedButton(
                           onPressed: _follow, // Chiamata al metodo follow
@@ -219,7 +207,6 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
                         ),
                         SizedBox(height: 20),
                         Text('Post ($posts)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
->>>>>>> 7cc3b2d53b00378dbe2e228b2204006f1fb795d0
                         SizedBox(height: 10),
                       ],
                     ),
@@ -227,8 +214,7 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
                 ),
                 userPosts.isEmpty
                     ? SliverFillRemaining(
-                        child:
-                            Center(child: Text('Non ci sono post disponibili')),
+                        child: Center(child: Text('Non ci sono post disponibili')),
                       )
                     : SliverList(
                         delegate: SliverChildBuilderDelegate(

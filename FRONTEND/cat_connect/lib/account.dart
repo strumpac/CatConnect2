@@ -40,7 +40,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.107:5000/api/auth/me'),
+        Uri.parse('http://192.168.1.239:5000/api/auth/me'),
         headers: {'Authorization': token},
       );
 

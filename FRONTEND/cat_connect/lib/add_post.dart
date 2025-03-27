@@ -156,15 +156,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
     try {
       final response = await http.get(
-<<<<<<< HEAD
+
         Uri.parse('http://192.168.1.239:5000/api/auth/me'),
         headers: {'Authorization': '$token'},
-=======
-        Uri.parse('http://192.168.1.107:5000/api/auth/me'),
-        headers: {
-          'Authorization': '$token'
-        },
->>>>>>> 7cc3b2d53b00378dbe2e228b2204006f1fb795d0
       );
 
       if (response.statusCode == 200) {
@@ -187,7 +181,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
       });
     }
 
-    const String apiUrl = 'http://192.168.1.107:5000/api/auth/addPost';
+    const String apiUrl = 'http://192.168.1.239:5000/api/auth/addPost';
 
     try {
       final response = await http.post(
