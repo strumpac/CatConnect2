@@ -55,7 +55,7 @@ class _AccountScreenState extends State<AccountScreen> {
           followers = data['followers'] != null ? data['followers'].length : 0;
           following = data['following'] != null ? data['following'].length : 0;
           posts = data['posts'] != null ? data['posts'].length : 0;
-          userPosts = List<String>.from(data['posts'] ?? []);
+          userPosts = List<String>.from(data['posts'] ?? []).reversed.toList();
           _isLoading = false;
         });
       } else {
