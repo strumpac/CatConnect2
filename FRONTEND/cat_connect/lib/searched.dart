@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchedUserScreen extends StatefulWidget {
-  final String? userId;  // Rendiamo userId facoltativo
+  final String? userId;
 
   const SearchedUserScreen({super.key, this.userId});
 
@@ -22,19 +22,54 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
   bool _isLoading = true;
   bool _isFollowing = false;
   String? _errorMessage;
-  String userID = '';
+  String userID = "";
 
   @override
   void initState() {
     super.initState();
     if (widget.userId != null) {
-      _fetchUserData(); // Recupera i dati solo se userId è disponibile
+      _fetchUserData();
+      _followButton();
     }
   }
 
-  // Funzione per recuperare i dati dell'utente cliccato
+  Future<void> _followButton() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
+
+    if (token == null) {
+      setState(() {
+        _errorMessage = 'Non trovato il token. Effettua il login.';
+        _isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://192.168.1.239:5000/api/auth/me'),
+        headers: {'Authorization': token},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        setState(() {
+          if (data['following'].contains(widget.userId)) {
+            _isFollowing = true;
+          }
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Errore di rete: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
   Future<void> _fetchUserData() async {
-    if (widget.userId == null) return; // Se userId non è passato, non fare nulla
+    if (widget.userId == null) return;
 
     try {
       final response = await http.get(
@@ -50,13 +85,13 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
           followers = data['followers'] != null ? data['followers'].length : 0;
           following = data['following'] != null ? data['following'].length : 0;
           posts = data['posts'] != null ? data['posts'].length : 0;
-          userPosts = List<String>.from(data['posts'] ?? []);
+          userPosts = List<String>.from(data['posts'] ?? []).reversed.toList();
           _isLoading = false;
-          _isFollowing = false;
         });
       } else {
         setState(() {
-          _errorMessage = 'Errore nel recupero dei dati utente: ${response.statusCode}, ${response.body}';
+          _errorMessage =
+              'Errore nel recupero dei dati utente: ${response.statusCode}';
           _isLoading = false;
         });
       }
@@ -69,101 +104,58 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
   }
 
   Future<void> _follow() async {
-    final prefs = await SharedPreferences.getInstance();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');
 
+    String urlFollow;
+
+    if(_isFollowing == false){
+      urlFollow = "http://192.168.1.239:5000/api/auth/follow";
+    }else{
+      urlFollow = "http://192.168.1.239:5000/api/auth/unfollow";
+    }
+
+    print(widget.userId);
+
     try {
-      final response = await http.get(
-        Uri.parse('http://192.168.1.239:5000/api/auth/me'),
+      final response = await http.post(
+        Uri.parse(urlFollow),
         headers: {
-          'Authorization': '$token'
+          'Authorization': token!,
+          'Content-Type': 'application/json',
         },
+        body: jsonEncode({'userId': widget.userId}),
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-
-        if (data['id'] != null) {
-          setState(() {
-            userID = data['id'];
-          });
-        }
+        setState(() {
+          _isFollowing = !_isFollowing;
+          if(_isFollowing == true){
+            followers++;
+          }else{
+            followers--;
+          }
+        });
       } else {
         setState(() {
-          // Handle any error states if necessary
+          _errorMessage = "Errore nel follow: ${response.body}";
         });
       }
     } catch (e) {
       setState(() {
-        // Handle network error if necessary
+        _errorMessage = "Errore di rete: $e";
       });
-    }
-
-    setState(() {
-      _isFollowing = !_isFollowing; // Inverte lo stato del follow
-    });
-
-    const String apiUrl1 = 'http://192.168.1.239:5000/api/auth/addFollowing';
-
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl1),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'myId': userID,
-          'otherId': widget.userId,
-        }),
-      );
-
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('following!')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Errore durante il following ' )),
-        );
-      }
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Errore di connessione: $error')),
-      );
-    }
-
-     const String apiUrl2 = 'http://192.168.1.239:5000/api/auth/addFollower';
-
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl2),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'myId': userID,
-          'otherId': widget.userId,
-        }),
-      );
-
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('following!')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Errore durante il following')),
-        );
-      }
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Errore di connessione: $error')),
-      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(username.isEmpty ? 'Caricamento...' : 'Account di $username')),
+      appBar: AppBar(
+          title: Text(
+              username.isEmpty ? 'Caricamento...' : 'Account di $username')),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : CustomScrollView(
               slivers: [
                 SliverToBoxAdapter(
@@ -173,60 +165,101 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            CircleAvatar(
-                              radius: 50,
-                              backgroundImage: NetworkImage(profileImageUrl),
-                            ),
-                            SizedBox(width: 16),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            Row(
                               children: [
-                                Text(
-                                  username,
-                                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                                CircleAvatar(
+                                  radius: 50,
+                                  backgroundImage:
+                                      NetworkImage(profileImageUrl),
                                 ),
-                                SizedBox(height: 8),
-                                Text('$followers followers  •  $following following',
-                                    style: TextStyle(fontSize: 16)),
+                                const SizedBox(width: 16),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          username,
+                                          style: const TextStyle(
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        const SizedBox(
+                                            width:
+                                                12), // Spazio tra username e bottone
+                                        ElevatedButton(
+                                          onPressed:_follow,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.black,
+                                          ),
+                                          child: Text(
+                                            _isFollowing
+                                                ? 'Following'
+                                                : 'Follow',
+                                            style: const TextStyle(
+                                                color: Colors.white),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                        '$followers followers  •  $following following'),
+                                  ],
+                                ),
                               ],
                             ),
                           ],
                         ),
-                        SizedBox(height: 20),
-                        // Bottone Follow
-                        ElevatedButton(
-                          onPressed: _follow, // Chiamata al metodo follow
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                          ),
-                          child: Text(
-                            _isFollowing ? 'Following' : 'Follow',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        Text('Post ($posts)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 20),
+                        Text('Post ($posts)',
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 10),
                       ],
                     ),
                   ),
                 ),
                 userPosts.isEmpty
-                    ? SliverFillRemaining(
-                        child: Center(child: Text('Non ci sono post disponibili')),
+                    ? const SliverFillRemaining(
+                        child:
+                            Center(child: Text('Non ci sono post disponibili')),
                       )
-                    : SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Image.network(userPosts[index]),
-                            );
-                          },
-                          childCount: userPosts.length,
+                    : SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        sliver: SliverGrid(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                          ),
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              return ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  userPosts[index],
+                                  fit: BoxFit.cover,
+                                ),
+                              );
+                            },
+                            childCount: userPosts.length,
+                          ),
                         ),
                       ),
+                if (_errorMessage != null)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ),
               ],
             ),
     );

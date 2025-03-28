@@ -111,7 +111,6 @@ router.get('/getUserPosts/:userId', async (req, res) => {
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
-    console.log(`ID utente: ${userId}`);
 
     const user = await User.findById(userId).populate('posts', 'imageUrl');
     
@@ -187,43 +186,71 @@ router.get('/user/:userId', async (req, res) => {
   }
 });
 
-router.post('/addFollowing', async (req, res) => {
-  const myId = req.body;
-  const otherId = req.body;
+router.post('/follow', authMiddleware, async (req, res) => {
+  const myId = req.user.id;
+  const otherId = req.body.userId;
 
+  console.log(myId, otherId);
+
+  if (!myId || !otherId) {
+    return res.status(400).json({ error: "Entrambi gli ID sono richiesti" });
+  }
 
   try {
     const myUser = await User.findById(myId);
     const otherUser = await User.findById(otherId);
-    console.log(myId);
-    console.log(myUser)
-    if (myUser) {
-      myUser.following.push(otherUser._id);  
-      await myUser.save(); 
+
+    if (!myUser || !otherUser) {
+      return res.status(404).json({ error: "Utente non trovato" });
     }
 
-    res.status(201).json(myUser);
+    if (!myUser.following.includes(otherId)) {
+      myUser.following.push(otherId);
+      await myUser.save();
+    }
+
+    if (!otherUser.followers.includes(myId)) {
+      otherUser.followers.push(myId);
+      await otherUser.save();
+    }
+
+    res.status(200).json({ message: "Seguito con successo", myUser, otherUser });
   } catch (error) {
-    res.status(500).json({ error: 'Errore nell following' });
+    console.error(error);
+    res.status(500).json({ error: "Errore nel follow" });
   }
 });
 
-router.post('/addFollower', async (req, res) => {
-  const myId = req.body;
-  const otherId = req.body;
+router.post('/unfollow', authMiddleware, async (req, res) => {
+  const myId = req.user.id;
+  const otherId = req.body.userId;
+
+  console.log(myId, otherId);
+
+  if (!myId || !otherId) {
+    return res.status(400).json({ error: "Entrambi gli ID sono richiesti" });
+  }
 
   try {
-    const user = await User.findById(otherId);
-    console.log(otherId);
-    console.log(user)
-    if (user) {
-      user.follower.push(myId);  
-      await user.save(); 
+    const myUser = await User.findById(myId);
+    const otherUser = await User.findById(otherId);
+
+    if (!myUser || !otherUser) {
+      return res.status(404).json({ error: "Utente non trovato" });
     }
 
-    res.status(201).json(user);
+    // Rimuovi l'ID di otherId dalla lista 'following' di myUser
+    myUser.following = myUser.following.filter(id => id.toString() !== otherId);
+    await myUser.save();
+
+    // Rimuovi l'ID di myId dalla lista 'followers' di otherUser
+    otherUser.followers = otherUser.followers.filter(id => id.toString() !== myId);
+    await otherUser.save();
+
+    res.status(200).json({ message: "Unfollow effettuato con successo", myUser, otherUser });
   } catch (error) {
-    res.status(500).json({ error: 'Errore nell follower' });
+    console.error(error);
+    res.status(500).json({ error: "Errore nell'unfollow" });
   }
 });
 
