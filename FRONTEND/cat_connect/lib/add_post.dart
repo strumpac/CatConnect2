@@ -26,16 +26,18 @@ class _AddPostScreenState extends State<AddPostScreen> {
   String userID = '';
   String imageURL = '';
   String filePath = '';
-  bool _isLoading = false; // Flag per la rotella di caricamento
-  bool _showButton =
-      false; // Flag per mostrare il bottone "Carica un'altra immagine"
+  bool _isLoading = false;
+  bool _showButton = false;
   final cloudinary = CloudinaryPublic('dzyi6fulj', 'cat_connect', cache: false);
+  List<String> catBreeds = [];
+  String? razzaSelezionata;
 
   @override
   void initState() {
     super.initState();
-    _pickImage(); // Automatically open the image picker on page load
+    _pickImage();
     _loadModel();
+    fetchCatBreeds();
   }
 
   Future<void> _loadModel() async {
@@ -65,7 +67,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
   Future<void> _predictImage(File image) async {
     setState(() {
-      _isLoading = true; // Mostra la rotella di caricamento
+      _isLoading = true;
     });
 
     final imageBytes = await image.readAsBytes();
@@ -76,7 +78,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
         _result = "Errore nell'elaborazione dell'immagine";
         _backgroundColor = Colors.red;
         _showPostForm = false;
-        _isLoading = false; // Nascondi la rotella
+        _isLoading = false;
       });
       return;
     }
@@ -114,8 +116,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
         _backgroundColor = const Color.fromARGB(255, 243, 173, 173);
         _showPostForm = false;
       }
-      _isLoading = false; // Nascondi la rotella
-      _showButton = true; // Mostra il bottone "Carica un'altra immagine"
+      _isLoading = false;
+      _showButton = true;
     });
   }
 
@@ -156,8 +158,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
     try {
       final response = await http.get(
-
-        Uri.parse('http://192.168.1.239:5000/api/auth/me'),
+        Uri.parse('http://192.168.1.107:5000/api/auth/me'),
         headers: {'Authorization': '$token'},
       );
 
@@ -181,7 +182,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
       });
     }
 
-    const String apiUrl = 'http://192.168.1.239:5000/api/auth/addPost';
+    const String apiUrl = 'http://192.168.1.107:5000/api/auth/addPost';
 
     try {
       final response = await http.post(
@@ -190,7 +191,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
         body: jsonEncode({
           'imageUrl': imageURL,
           'description': _descriptionController.text,
-          'author': '$userID',
+          'author': userID,
+          'breed': razzaSelezionata
         }),
       );
 
@@ -212,6 +214,22 @@ class _AddPostScreenState extends State<AddPostScreen> {
       setState(() {
         _isLoading = false;
       });
+      
+    }
+  }
+
+  Future<void> fetchCatBreeds() async {
+    catBreeds.add('Altro');
+    final response =
+        await http.get(Uri.parse('https://api.thecatapi.com/v1/breeds'));
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        catBreeds = data.map((item) => item['name'].toString()).toList();
+        catBreeds.add('Altro');
+      });
+    } else {
+      throw Exception('Errore nel caricamento delle razze');
     }
   }
 
@@ -231,37 +249,31 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 fit: BoxFit.cover,
               ),
             SizedBox(height: 20),
-            if (_isLoading)
-              CircularProgressIndicator(), // Mostra la rotella durante il caricamento
+            if (_isLoading) CircularProgressIndicator(),
             if (!_isLoading && _showButton)
               ElevatedButton(
                 onPressed: _pickImage,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white, // Colore di sfondo bianco
-                  foregroundColor: Colors.black, // Colore del testo nero
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(15), // Bordi arrotondati
+                    borderRadius: BorderRadius.circular(15),
                   ),
-                  padding: EdgeInsets.symmetric(
-                      vertical: 12, horizontal: 25), // Spaziatura interna
-                  shadowColor: Colors.black.withOpacity(0.2), // Ombra leggera
-                  elevation: 5, // Elevazione per l'ombra
-                  side: BorderSide(
-                      color: Colors.grey,
-                      width: 1), // Bordo grigio per il bottone
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 25),
+                  shadowColor: Colors.black.withOpacity(0.2),
+                  side: BorderSide(color: Colors.grey, width: 1),
                 ),
                 child: const Text(
-                  'Seleziona un\'altra immagine', // Testo del bottone
+                  'Seleziona un\'altra immagine',
                   style: TextStyle(
-                    fontSize: 16, // Dimensione del font
-                    fontWeight: FontWeight.bold, // Testo in grassetto
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             if (_showPostForm) ...[
               Padding(
-                padding: const EdgeInsets.all(8.0), // Aggiungi margine di 8px
+                padding: const EdgeInsets.all(8.0),
                 child: TextField(
                   controller: _descriptionController,
                   decoration: InputDecoration(
@@ -294,28 +306,46 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 ),
               ),
               SizedBox(height: 10),
+              DropdownButton<String>(
+                value: razzaSelezionata,
+                hint: const Text('Seleziona la razza del gatto'),
+                dropdownColor: Colors.white,
+                style: const TextStyle(
+                  color: Colors.black, 
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+                items: catBreeds.map((breed) {
+                  return DropdownMenuItem(
+                    value: breed,
+                    child: Text(breed),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    razzaSelezionata = value!;
+                  });
+                },
+              ),
+              SizedBox(height: 10),
               ElevatedButton(
                 onPressed: _sendPost,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white, // Colore di sfondo bianco
-                  foregroundColor: Colors.black, // Colore del testo nero
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(15), // Bordi arrotondati
+                    borderRadius: BorderRadius.circular(15),
                   ),
-                  padding: EdgeInsets.symmetric(
-                      vertical: 12, horizontal: 25), // Spaziatura interna
-                  shadowColor: Colors.black.withOpacity(0.2), // Ombra leggera
-                  elevation: 5, // Elevazione per l'ombra
-                  side: BorderSide(
-                      color: Colors.grey,
-                      width: 1), // Bordo grigio per il bottone
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 25),
+                  shadowColor: Colors.black.withOpacity(0.2),
+                  elevation: 5,
+                  side: BorderSide(color: Colors.grey, width: 1),
                 ),
                 child: const Text(
-                  'Carica', // Testo del bottone
+                  'Carica',
                   style: TextStyle(
-                    fontSize: 16, // Dimensione del font
-                    fontWeight: FontWeight.bold, // Testo in grassetto
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),

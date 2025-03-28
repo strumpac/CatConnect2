@@ -75,11 +75,11 @@ router.post('/login', async (req, res) => {
 
 // Aggiungo il posto al database
 router.post('/addPost', async (req, res) => {
-  const { imageUrl, description, author } = req.body;
+  const { imageUrl, description, author, breed } = req.body;
 
   try {
     // Crea un nuovo post
-    const newPost = await Post.create({ imageUrl, description, author });
+    const newPost = await Post.create({ imageUrl, description, author, breed});
     console.log(newPost);
 
     // Aggiungi l'ID del post appena creato nell'array 'posts' dell'utente

@@ -12,7 +12,8 @@ const postSchema = new mongoose.Schema({
             text: { type: String, required: true },
             createdAt: { type: Date, default: Date.now }
         }
-    ]
+    ],
+    breed : {type: String}
 });
 
 
