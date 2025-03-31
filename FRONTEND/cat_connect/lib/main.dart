@@ -55,6 +55,20 @@ class MyAppState extends State<MyApp> {
     });
   }
 
+  void updateSelectedIndex(int index) {
+  setState(() {
+    _selectedIndex = index;
+  });
+}
+
+void updateLogin(int index){
+  setState(() {
+    _isLoggedIn = false; 
+  });
+
+}
+
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

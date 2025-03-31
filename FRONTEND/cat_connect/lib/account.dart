@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cat_connect/main.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -46,9 +47,6 @@ class _AccountScreenState extends State<AccountScreen> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-      
-        print(data['posts']);
-
         setState(() {
           username = data['username'];
           profileImageUrl = data['profilePictureUrl'];
@@ -73,10 +71,22 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove('authToken'); // Rimuovi il token dalla memoria locale
+
+            MyAppState? appState = context.findAncestorStateOfType<MyAppState>();
+        if (appState != null) {
+          appState.updateLogin(0); 
+        }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Account')),
+      appBar: AppBar(
+        title: Text('Account'),
+      ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : CustomScrollView(
@@ -109,12 +119,18 @@ class _AccountScreenState extends State<AccountScreen> {
                                     '$followers followers  •  $following following'),
                               ],
                             ),
+
+                            // Icona di logout a destra
+                            IconButton(
+                              icon: const Icon(Icons.logout),
+                              onPressed: _logout, // Funzione per il logout
+                            ),
                           ],
                         ),
                         SizedBox(height: 20),
                         // Sezione post dell'utente
                         Text(
-                          'Post ($posts)',
+                          'Posts ($posts)',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),

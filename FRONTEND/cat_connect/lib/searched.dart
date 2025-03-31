@@ -214,7 +214,7 @@ class _SearchedUserScreenState extends State<SearchedUserScreen> {
                           ],
                         ),
                         const SizedBox(height: 20),
-                        Text('Post ($posts)',
+                        Text('Posts ($posts)',
                             style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 10),
