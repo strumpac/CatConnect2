@@ -1,0 +1,2 @@
+C:/Users/Bikers/Desktop/CatConnect/FRONTEND/cat_connect/android/app/.cxx/RelWithDebInfo/6k2k94w2/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/Bikers/Desktop/CatConnect/FRONTEND/cat_connect/android/app/.cxx/RelWithDebInfo/6k2k94w2/armeabi-v7a/CMakeFiles/rebuild_cache.dir

@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:dio/dio.dart';
+import 'package:cat_connect/main.dart';
 
 class AddPostScreen extends StatefulWidget {
   @override
@@ -158,7 +159,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.107:5000/api/auth/me'),
+        Uri.parse('http://192.168.1.239:5000/api/auth/me'),
         headers: {'Authorization': '$token'},
       );
 
@@ -182,7 +183,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
       });
     }
 
-    const String apiUrl = 'http://192.168.1.107:5000/api/auth/addPost';
+    const String apiUrl = 'http://192.168.1.239:5000/api/auth/addPost';
 
     try {
       final response = await http.post(
@@ -200,6 +201,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Post pubblicato con successo!')),
         );
+        MyAppState? appState = context.findAncestorStateOfType<MyAppState>();
+        if (appState != null) {
+          appState.updateSelectedIndex(0); 
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -214,7 +219,6 @@ class _AddPostScreenState extends State<AddPostScreen> {
       setState(() {
         _isLoading = false;
       });
-      
     }
   }
 
@@ -311,7 +315,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 hint: const Text('Seleziona la razza del gatto'),
                 dropdownColor: Colors.white,
                 style: const TextStyle(
-                  color: Colors.black, 
+                  color: Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
