@@ -25,7 +25,7 @@ class MyAppState extends State<MyApp> {
       _selectedUserId; // Variabile per gestire la schermata del profilo cercato
 
   // Lista delle schermate per la BottomNavigationBar
-  static List<Widget> _widgetOptions = <Widget>[
+  static  List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     SearchScreen(),
     AddPostScreen(),
@@ -55,6 +55,7 @@ class MyAppState extends State<MyApp> {
     });
   }
 
+
   void updateSelectedIndex(int index) {
   setState(() {
     _selectedIndex = index;
@@ -74,12 +75,11 @@ void updateLogin(int index){
     return MaterialApp(
       title: 'Cat Connect',
       theme: ThemeData(
-        primaryColor: Colors.white,
+        primaryColor: Colors.black,
         scaffoldBackgroundColor: Colors.white,
         colorScheme: const ColorScheme.light(
           primary: Colors.white,
-          secondary: Colors.black,
-          background: Color(0xFFFFF3E0),
+          secondary: Colors.black
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,

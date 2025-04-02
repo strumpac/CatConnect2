@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'searched.dart'; // Importa la schermata SearchedUserScreen
+import 'searched.dart'; 
 import 'package:cat_connect/main.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -29,9 +29,9 @@ class _SearchScreenState extends State<SearchScreen> {
       _isLoading = true;
     });
 
-    // Ottieni il token dal SharedPreferences
+    
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken'); // Ottieni il token memorizzato
+    final token = prefs.getString('authToken'); 
 
     if (token == null) {
       setState(() {
@@ -46,7 +46,7 @@ class _SearchScreenState extends State<SearchScreen> {
         Uri.parse(
             'http://10.1.0.6:5000/api/auth/searchUsers?query=$query'),
         headers: {
-          'Authorization': token // Aggiungi il token nel formato Bearer
+          'Authorization': token 
         },
       );
 
@@ -105,7 +105,6 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
               ),
             ),
-            // Mostra i risultati della ricerca
             Expanded(
               child: _isLoading
                   ? Center(child: CircularProgressIndicator())
@@ -136,7 +135,6 @@ class _SearchScreenState extends State<SearchScreen> {
                           },
                         ),
             ),
-            // Mostra errori se ci sono
             if (_errorMessage != null)
               Padding(
                 padding: const EdgeInsets.all(16.0),

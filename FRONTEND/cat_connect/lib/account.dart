@@ -26,7 +26,7 @@ class _AccountScreenState extends State<AccountScreen> {
     super.initState();
     _fetchUserData();
   }
-
+ // recupero i dati dell'utente
   Future<void> _fetchUserData() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');
@@ -81,6 +81,7 @@ class _AccountScreenState extends State<AccountScreen> {
         }
   }
 
+// visualizzo le info dell'utente e i suoi post
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -22,12 +22,15 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _errorMessage;
   File? _profileImage;
 
+  //controller delle varie text box
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
 
+  //dati per connettersi al repository pubblico su cui sono salvate le foto
   final cloudinary = CloudinaryPublic('dzyi6fulj', 'cat_connect', cache: false);
 
+  //metodo per recuperare l'immagine da verificare
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -38,6 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  //metodo per fare il login
   Future<void> _login() async {
     setState(() {
       _isLoading = true;
@@ -51,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
       return;
     }
-
+  //metodo per controllare le credenziali e fare l'autenticazione
     try {
       final response = await http.post(
         Uri.parse('http://10.1.0.6:5000/api/auth/login'),
@@ -87,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     }
   }
-
+  //metodo per la registrazione
   Future<void> _register() async {
     setState(() {
       _isLoading = true;
@@ -95,6 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     String? imageUrl;
 
+    // salviamo l'immagine profilo nel repository
     if (_profileImage != null) {
       try {
         CloudinaryResponse response = await cloudinary.uploadFile(
@@ -116,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
     }
-
+    //salviamo i dati dell'utente sul DB
     final response = await http.post(
       Uri.parse('http://10.1.0.6:5000/api/auth/register'),
       body: json.encode({
@@ -172,22 +177,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               const SizedBox(height: 20),
-             // if (_isRegistering)
-                TextField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Username',
-                    labelStyle: TextStyle(color: Colors.black),
-                  ),
-                ),
-              if(_isRegistering)
+              // if (_isRegistering)
               TextField(
-                controller: _emailController,
+                controller: _usernameController,
                 decoration: const InputDecoration(
-                  labelText: 'Email',
+                  labelText: 'Username',
                   labelStyle: TextStyle(color: Colors.black),
                 ),
               ),
+              if (_isRegistering)
+                TextField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    labelStyle: TextStyle(color: Colors.black),
+                  ),
+                ),
               TextField(
                 controller: _passwordController,
                 obscureText: true,

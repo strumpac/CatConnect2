@@ -40,7 +40,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
     _loadModel();
     fetchCatBreeds();
   }
-
+ //caricamento del modello tflite
   Future<void> _loadModel() async {
     final appDocDir = await getApplicationDocumentsDirectory();
     final modelPath = '${appDocDir.path}/cat_detector.tflite';
@@ -65,7 +65,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
     filePath = pickedFile.path;
     _predictImage(image);
   }
-
+  
+  //metodo per riconoscere il gatto
   Future<void> _predictImage(File image) async {
     setState(() {
       _isLoading = true;
@@ -122,6 +123,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
     });
   }
 
+  //pubblico il post
   Future<void> _sendPost() async {
     setState(() {
       _isLoading = true;
@@ -198,7 +200,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
       );
 
       if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar( 
           const SnackBar(content: Text('Post pubblicato con successo!')),
         );
         MyAppState? appState = context.findAncestorStateOfType<MyAppState>();
