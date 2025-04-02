@@ -159,6 +159,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
     try {
       final response = await http.get(
+
         Uri.parse('http://10.1.0.6:5000/api/auth/me'),
         headers: {'Authorization': '$token'},
       );
@@ -182,6 +183,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
         _descriptionController.text = 'Errore durante la richiesta: $e';
       });
     }
+
 
     const String apiUrl = 'http://10.1.0.6:5000/api/auth/addPost';
 
