@@ -1,0 +1,2 @@
+C:/Users/miriam.santi/Desktop/CatConnect/FRONTEND/cat_connect/android/app/.cxx/Debug/195v51u2/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/miriam.santi/Desktop/CatConnect/FRONTEND/cat_connect/android/app/.cxx/Debug/195v51u2/armeabi-v7a/CMakeFiles/rebuild_cache.dir

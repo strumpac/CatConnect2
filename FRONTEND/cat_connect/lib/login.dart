@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+    if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
       setState(() {
         _isLoading = false;
         _errorMessage = "Compilare tutti i campi";
@@ -55,9 +55,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://10.1.0.13:5000/api/auth/login'),
+        Uri.parse('http://10.1.0.6:5000/api/auth/login'),
         body: json.encode({
-          'email': _emailController.text,
+          'username': _usernameController.text,
           'password': _passwordController.text,
         }),
         headers: {'Content-Type': 'application/json'},
@@ -123,7 +123,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     final response = await http.post(
-      Uri.parse('http://10.1.0.13:5000/api/auth/register'),
+
+      Uri.parse('http://10.1.0.6:5000/api/auth/register'),
       body: json.encode({
         'username': _usernameController.text,
         'email': _emailController.text,
@@ -177,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               const SizedBox(height: 20),
-              if (_isRegistering)
+             // if (_isRegistering)
                 TextField(
                   controller: _usernameController,
                   decoration: const InputDecoration(
@@ -185,6 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelStyle: TextStyle(color: Colors.black),
                   ),
                 ),
+              if(_isRegistering)
               TextField(
                 controller: _emailController,
                 decoration: const InputDecoration(
