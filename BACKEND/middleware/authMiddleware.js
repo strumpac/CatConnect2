@@ -8,16 +8,13 @@ const authMiddleware = (req, res, next) => {
   }
 
   try {
-    console.log(token);
     const decoded = jwt.verify(token, 'secretKey'); // Usa la stessa chiave segreta del login
-    console.log('Token decodificato: ', decoded);
     req.user = {
       id: decoded.userId // Estrai l'ID dell'utente dalla chiave 'userId' del token
     };
     next();
   } catch (error) {
-    console.log("token non valido")
-    return res.status(401).json({ message: "Token non valido." });
+        return res.status(401).json({ message: "Token non valido." });
   }
 };
 

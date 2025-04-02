@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cat_connect/main.dart';
 
 class LoginScreen extends StatefulWidget {
   final Function(bool) onLogin;
@@ -76,7 +77,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
         final prefs = await SharedPreferences.getInstance();
         prefs.setString('authToken', token);
-        print('Token salvato: $token');
+        
+        MyAppState? appState = context.findAncestorStateOfType<MyAppState>();
+        if (appState != null) {
+          appState.updateSelectedIndex(0); 
+        }
 
         widget.onLogin(true);
       } else {
@@ -123,6 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     //salviamo i dati dell'utente sul DB
     final response = await http.post(
+
       Uri.parse('http://10.1.0.6:5000/api/auth/register'),
       body: json.encode({
         'username': _usernameController.text,
