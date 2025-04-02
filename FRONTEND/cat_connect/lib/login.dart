@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cat_connect/main.dart';
 
 class LoginScreen extends StatefulWidget {
   final Function(bool) onLogin;
@@ -54,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.239:5000/api/auth/login'),
+        Uri.parse('http://10.1.0.13:5000/api/auth/login'),
         body: json.encode({
           'email': _emailController.text,
           'password': _passwordController.text,
@@ -72,7 +73,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
         final prefs = await SharedPreferences.getInstance();
         prefs.setString('authToken', token);
-        print('Token salvato: $token');
+        
+        MyAppState? appState = context.findAncestorStateOfType<MyAppState>();
+        if (appState != null) {
+          appState.updateSelectedIndex(0); 
+        }
 
         widget.onLogin(true);
       } else {
@@ -118,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.239:5000/api/auth/register'),
+      Uri.parse('http://10.1.0.13:5000/api/auth/register'),
       body: json.encode({
         'username': _usernameController.text,
         'email': _emailController.text,
