@@ -270,5 +270,33 @@ router.post('/followingPosts',  async (req, res) => {
   }
 });
 
+router.post('/toggleLike/:postId', async (req, res) => {
+  const userId = req.body.id;
+  const { postId } = req.params;
+
+  console.log(userId, postId);
+
+  try {
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: 'Post non trovato' });
+
+    const alreadyLiked = post.likes.includes(userId);
+
+    if (alreadyLiked) {
+      console.log(`Aggiunto: ${post.likes}`);
+      post.likes = post.likes.filter(id => id.toString() !== userId);
+    } else {
+      post.likes.push(userId);
+      console.log(`Rimosso: ${post.likes}`);
+    }
+
+    await post.save();
+    res.status(200).json({ liked: !alreadyLiked, likesCount: post.likes.length });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Errore nel mettere/togliere il like' });
+  }
+});
+
 
 module.exports = router;

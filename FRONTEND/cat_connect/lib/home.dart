@@ -88,23 +88,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Future<void> toggleLike(int index) async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final likedPosts = prefs.getStringList('likedPosts') ?? [];
-  //   final postId = posts[index]['id'].toString();
+  Future<void> toggleLike(String postId) async {
+    final response = await http.post(
+      Uri.parse('http://10.1.0.13:5000/api/auth/toggleLike/$postId'),
+      body: json.encode({'id': id}),
+      headers: {'Content-Type': 'application/json'},
+    );
 
-  //   setState(() {
-  //     if (likedPosts.contains(postId)) {
-  //       likedPosts.remove(postId);
-  //       posts[index]['liked'] = false;
-  //     } else {
-  //       likedPosts.add(postId);
-  //       posts[index]['liked'] = true;
-  //     }
-  //   });
-
-  //   await prefs.setStringList('likedPosts', likedPosts);
-  // }
+    if(response.statusCode == 200){
+      
+    }
+  }
 
   // Future<void> addComment(int index, String comment) async {
   //   final prefs = await SharedPreferences.getInstance();
@@ -167,19 +161,21 @@ class _HomeScreenState extends State<HomeScreen> {
                           //     overflow: TextOverflow.ellipsis,
                           //   ),
                           // ),
-                          // Padding(
-                          //   padding: const EdgeInsets.symmetric(horizontal: 10),
-                          //   child: Row(
-                          //     children: [
-                          //       // Icona del Like
-                          //       IconButton(
-                          //         icon: Icon(Icons.favorite, size: 30),
-                          //         color: post['liked']
-                          //             ? Colors.pinkAccent
-                          //             : Colors.grey,
-                          //         onPressed: () => toggleLike(index),
-                          //       ),
-
+                          Padding(
+                             padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: Row(
+                              children: [
+                                // Icona del Like
+                                IconButton(
+                                 icon: Icon(Icons.favorite, size: 30),
+                                 color: 
+                                        const Color.fromARGB(255, 27, 25, 26),
+                                        
+                                onPressed: () => toggleLike("67f39bdad9ea62451abd63cd"),
+                                ),
+                              ],
+                            ),
+                          )
                           //       // Icona del Commento
                           //       IconButton(
                           //         icon: Icon(Icons.comment,
