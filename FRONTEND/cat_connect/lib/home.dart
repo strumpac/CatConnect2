@@ -12,7 +12,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<String> posts = [];
+  List<Map<String, dynamic>> posts = [];
   List<String> following = [];
   String? _errorMessage;
   var id = '';
@@ -64,16 +64,14 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final response = await http.post(
         Uri.parse('http://10.1.0.13:5000/api/auth/followingPosts'),
-        body: json.encode({
-          'id': id
-        }),
+        body: json.encode({'id': id}),
         headers: {'Content-Type': 'application/json'},
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          posts = List<String>.from(data).reversed.toList(); 
+          posts = List<Map<String, dynamic>>.from(data).reversed.toList();
         });
       } else {
         setState(() {
@@ -95,106 +93,120 @@ class _HomeScreenState extends State<HomeScreen> {
       headers: {'Content-Type': 'application/json'},
     );
 
-    if(response.statusCode == 200){
-      
+    if (response.statusCode == 200) {
+      setState(() {
+        final index = posts.indexWhere((post) => post['id'] == postId);
+        if (index != -1) {
+          List<dynamic> likes = posts[index]['likes'] ?? [];
+
+          if (likes.contains(id)) {
+            likes.remove(id); // Dislike
+          } else {
+            likes.add(id); // Like
+          }
+
+          posts[index]['likes'] = likes;
+        }
+      });
+    } else {
+      print('Errore nel like: ${response.statusCode}');
     }
   }
-
-  // Future<void> addComment(int index, String comment) async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final postId = posts[index]['id'].toString();
-  //   final comments = prefs.getStringList('comments_$postId') ?? [];
-
-  //   comments.add(comment);
-  //   await prefs.setStringList('comments_$postId', comments);
-  //   setState(() {});
-  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: AnimationLimiter(
-          child: ListView.builder(
-            itemCount: posts.length,
-            itemBuilder: (context, index) {
-              final post = posts[index];
-              return AnimationConfiguration.staggeredList(
-                position: index,
-                child: SlideAnimation(
-                  verticalOffset: 50.0,
-                  child: FadeInAnimation(
-                    child: Card(
-                      margin: EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      elevation: 8,
-                      shadowColor: Colors.black54,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius:
-                                BorderRadius.vertical(top: Radius.circular(20)),
-                            child: CachedNetworkImage(
-                              imageUrl: posts[index],
-                              height: 300,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                color: Colors.grey[300],
-                                child: Icon(Icons.image, color: Colors.grey),
+      body: _errorMessage != null
+          ? Center(child: Text(_errorMessage!))
+          : posts.isEmpty
+              ? Center(
+                  child: Text(
+                    "Inizia a seguire qualcuno per visualizzarne i post",
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: AnimationLimiter(
+                    child: ListView.builder(
+                      itemCount: posts.length,
+                      itemBuilder: (context, index) {
+                        final post = posts[index];
+                        final List<dynamic> likes = post['likes'] ?? [];
+                        final bool isLiked = likes.contains(id);
+
+                        return AnimationConfiguration.staggeredList(
+                          position: index,
+                          child: SlideAnimation(
+                            verticalOffset: 50.0,
+                            child: FadeInAnimation(
+                              child: Card(
+                                margin: EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                elevation: 8,
+                                shadowColor: Colors.black54,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.vertical(
+                                          top: Radius.circular(20)),
+                                      child: CachedNetworkImage(
+                                        imageUrl: post['imageUrl'],
+                                        height: 300,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                        placeholder: (context, url) =>
+                                            Container(
+                                          color: Colors.grey[300],
+                                          child: Icon(
+                                            Icons.image,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        errorWidget: (context, url, error) =>
+                                            Icon(Icons.error,
+                                                color: Colors.red),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10),
+                                      child: Row(
+                                        children: [
+                                          IconButton(
+                                            icon:
+                                                Icon(Icons.favorite, size: 30),
+                                            color: isLiked
+                                                ? Colors.red
+                                                : Colors.grey[400],
+                                            onPressed: () =>
+                                                toggleLike(post['id']),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.comment,
+                                                size: 28,
+                                                color: Colors.black54),
+                                            onPressed: () {
+                                              // commenti futuri
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                ),
                               ),
-                              errorWidget: (context, url, error) =>
-                                  Icon(Icons.error, color: Colors.red),
                             ),
                           ),
-                          // Padding(
-                          //   padding: const EdgeInsets.all(10.0),
-                          //   child: Text(
-                          //     post['description'],
-                          //     style: TextStyle(
-                          //         fontSize: 16, fontWeight: FontWeight.w500),
-                          //     maxLines: 3,
-                          //     overflow: TextOverflow.ellipsis,
-                          //   ),
-                          // ),
-                          Padding(
-                             padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Row(
-                              children: [
-                                // Icona del Like
-                                IconButton(
-                                 icon: Icon(Icons.favorite, size: 30),
-                                 color: 
-                                        const Color.fromARGB(255, 27, 25, 26),
-                                        
-                                onPressed: () => toggleLike("67f39bdad9ea62451abd63cd"),
-                                ),
-                              ],
-                            ),
-                          )
-                          //       // Icona del Commento
-                          //       IconButton(
-                          //         icon: Icon(Icons.comment,
-                          //             size: 28, color: Colors.black54),
-                          //         onPressed: () {},
-                          //       ),
-                          //     ],
-                          //   ),
-                          // ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                   ),
                 ),
-              );
-            },
-          ),
-        ),
-      ),
     );
   }
 }
