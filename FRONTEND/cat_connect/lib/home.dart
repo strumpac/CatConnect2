@@ -36,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.1.0.13:5000/api/auth/me'),
+        Uri.parse('http://10.1.0.6:5000/api/auth/me'),
         headers: {'Authorization': token},
       );
 
@@ -63,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> loadPosts() async {
     try {
       final response = await http.post(
-        Uri.parse('http://10.1.0.13:5000/api/auth/followingPosts'),
+        Uri.parse('http://10.1.0.6:5000/api/auth/followingPosts'),
         body: json.encode({'id': id}),
         headers: {'Content-Type': 'application/json'},
       );
@@ -88,11 +88,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> toggleLike(String postId) async {
     final response = await http.post(
-      Uri.parse('http://10.1.0.13:5000/api/auth/toggleLike/$postId'),
+      Uri.parse('http://10.1.0.6:5000/api/auth/toggleLike/$postId'),
       body: json.encode({'id': id}),
       headers: {'Content-Type': 'application/json'},
     );
-
     if (response.statusCode == 200) {
       setState(() {
         final index = posts.indexWhere((post) => post['id'] == postId);
@@ -113,10 +112,27 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+// questa è una prova solo per aggiungere un commento
+  Future<void> addComment(String postId) async {
+    final response = await http.post(
+      Uri.parse('http://10.1.0.6:5000/api/auth/addComment/$postId'),
+      body: json.encode({'user': 'miri',
+                          'text':'ma che carino',
+                          'createdAt': DateTime.wednesday}),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+    
+    } else {
+      print('Errore nel commento: ${response.statusCode}');
+    }
+  }
+
 Future<void> viewComments(String postId) async {
   try {
     final response = await http.post(
-      Uri.parse('http://10.1.0.13:5000/api/auth/getAllComments/$postId'),
+      Uri.parse('http://10.1.0.6:5000/api/auth/getAllComments/$postId'),
       headers: {'Content-Type': 'application/json'},
     );
 

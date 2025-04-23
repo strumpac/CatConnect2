@@ -316,10 +316,41 @@ router.post('/getAllComments/:postId', async (req, res) => {
     if(!post) return res.status(404).json({message: 'Post non trovato'});
 
     res.status(200).json(post.comments);
+    console.log(post.comments)
   }catch(error){
     res.status(500);
   }
+
+  
 });
+
+router.post('/addComment/:postId', async (req, res) => {
+  const { postId } = req.params;
+  const { user, text, createdAt} = req.body
+
+  try {
+    const post = await Post.findById(postId);
+    if(!post) return res.status(404).json({message: 'Post non trovato'});
+
+    const newComment = await Comment.create({user, text, createdAt});
+    console.log(newComment);
+
+
+    if (post) {
+      post.comments.push(newComment._id);  
+      await post.save(); 
+    }
+
+    res.status(201).json(newPost);
+    console.log(post.comments)
+  }catch(error){
+    res.status(500);
+  }
+
+  
+});
+
+
 
 
 module.exports = router;
