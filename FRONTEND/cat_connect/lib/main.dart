@@ -5,7 +5,8 @@ import 'add_post.dart';
 import 'home.dart';
 import 'search.dart';
 import 'login.dart';
-import 'searched.dart'; // Assicurati che questa sia la schermata corretta per il profilo utente cercato
+import 'searched.dart'; 
+import 'cat_snake.dart';
 
 void main() {
   runApp(MyApp());
@@ -29,7 +30,9 @@ class MyAppState extends State<MyApp> {
     HomeScreen(),
     SearchScreen(),
     AddPostScreen(),
-    AccountScreen(),
+    SnakeGame(),
+    AccountScreen()
+    
   ];
 
   // Aggiorna l'indice della pagina selezionata
@@ -149,6 +152,10 @@ void updateLogin(int index){
                     BottomNavigationBarItem(
                       icon: Icon(Icons.add),
                       label: 'Add Post',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.gamepad),
+                      label: 'Game',
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(Icons.account_circle),
