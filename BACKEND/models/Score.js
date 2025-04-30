@@ -7,6 +7,6 @@ const scoreSchema = new mongoose.Schema({
 });
 
 
-const Score = mongoose.model('Score', postSchema);
+const Score = mongoose.model('Score', scoreSchema);
 
 module.exports = Score;
