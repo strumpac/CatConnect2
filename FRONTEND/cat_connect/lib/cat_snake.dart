@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
-
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 // === POSIZIONE GRIGLIA ===
@@ -31,7 +31,9 @@ class _SnakeGameState extends State<SnakeGame> {
   Position food = Position(7, 5);
   Timer? timer;
   int score = 0;
-  late Database database;
+  bool gameOver = false;
+  var topScores = []; 
+  var userID;
 
   final String catEmoji = '🐱';
   final String foodEmoji = '🥫';
@@ -39,20 +41,9 @@ class _SnakeGameState extends State<SnakeGame> {
   @override
   void initState() {
     super.initState();
-    _initDatabase();
     startGame();
   }
 
-  // === INIZIALIZZA DATABASE ===
-  Future<void> _initDatabase() async {
-    database = await openDatabase(
-      join(await getDatabasesPath(), 'snake_scores.db'),
-      onCreate: (db, version) {
-        return db.execute('CREATE TABLE scores(id INTEGER PRIMARY KEY, score INTEGER)');
-      },
-      version: 1,
-    );
-  }
 
   // === AVVIA GIOCO ===
   void startGame() {
@@ -92,8 +83,7 @@ class _SnakeGameState extends State<SnakeGame> {
 
     if (snake.any((s) => s.equals(newHead))) {
       timer?.cancel();
-      _saveScore();
-      _showGameOverDialog();
+      _GameOver();  
       return;
     }
 
@@ -119,41 +109,47 @@ class _SnakeGameState extends State<SnakeGame> {
   }
 
   // === DIALOG FINE GIOCO ===
- void _showGameOverDialog() async {
-  
-  //dbbbbbbb
-  const topScores = [];
+  void _GameOver() async {
+     final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
+    try {
+      final response = await http.get(
 
-  showDialog(
-    context: context as BuildContext,
-    builder: (_) => AlertDialog(
-      title: const Text('Game Over'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Punteggio: $score\n'),
-          const Text('🏆 Classifica:'),
-          ...topScores.map((entry) => Text('• ${entry['score']} punti')).toList(),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context as BuildContext);
-            _restartGame();
-          },
-          child: const Text('Riprova'),
-        ),
-      ],
-    ),
-  );
-}
+        Uri.parse('https://catconnect-7yg6.onrender.com//api/auth/me'),
+        headers: {'Authorization': '$token'},
+      );
 
-  // === SALVA PUNTEGGIO ===
-  Future<void> _saveScore() async {
-    await database.insert('scores', {'score': score});
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (data['id'] != null) {
+          setState(() {
+            userID = data['id'];
+          });
+        }
+      }
+    } catch (e) {
+      setState(() {
+      });
+    }
+    
+    gameOver = true;
+
+     final response = await http.post(
+      Uri.parse('http://10.1.0.6:5000/api/auth/addScores'),
+      body: json.encode({'user': userID,
+                          'score': score}),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+    
+    } else {
+      print('Errore nel commento: ${response.statusCode}');
+    }
+
   }
+
 
   // === RIAVVIA GIOCO ===
   void _restartGame() {
@@ -168,52 +164,96 @@ class _SnakeGameState extends State<SnakeGame> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    if(!gameOver){
+        return Scaffold(
       appBar: AppBar(title: const Text('Snake Gattino 🐱')),
       body: Column(
         children: [
           Expanded(
-            child: GestureDetector(
-              onVerticalDragUpdate: (details) {
-                if (details.delta.dy < 0) changeDirection(Direction.up);
-                if (details.delta.dy > 0) changeDirection(Direction.down);
-              },
-              onHorizontalDragUpdate: (details) {
-                if (details.delta.dx < 0) changeDirection(Direction.left);
-                if (details.delta.dx > 0) changeDirection(Direction.right);
-              },
-              child: GridView.builder(
-                itemCount: rowSize * rowSize,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: rowSize),
-                itemBuilder: (context, index) {
-                  final x = index % rowSize;
-                  final y = index ~/ rowSize;
-                  final pos = Position(x, y);
+            child: GridView.builder(
+              itemCount: rowSize * rowSize,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: rowSize),
+              itemBuilder: (context, index) {
+                final x = index % rowSize;
+                final y = index ~/ rowSize;
+                final pos = Position(x, y);
 
-                  if (snake.any((s) => s.equals(pos))) {
-                    return Center(child: Text(catEmoji, style: const TextStyle(fontSize: 20)));
-                  } else if (food.equals(pos)) {
-                    return Center(child: Text(foodEmoji, style: const TextStyle(fontSize: 20)));
-                  } else {
-                    return Container(color: Colors.grey[300]);
-                  }
-                },
-              ),
+                if (snake.any((s) => s.equals(pos))) {
+                  return Center(child: Text(catEmoji, style: const TextStyle(fontSize: 20)));
+                } else if (food.equals(pos)) {
+                  return Center(child: Text(foodEmoji, style: const TextStyle(fontSize: 20)));
+                } else {
+                  return Container(color: Colors.lightGreen[300]);
+                }
+              },
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(12),
             child: Text('Punteggio: $score', style: const TextStyle(fontSize: 20)),
           ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_upward),
+                onPressed: () => changeDirection(Direction.up),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => changeDirection(Direction.left),
+              ),
+              IconButton(
+                icon: const Icon(Icons.arrow_downward),
+                onPressed: () => changeDirection(Direction.down),
+              ),
+              IconButton(
+                icon: const Icon(Icons.arrow_forward),
+                onPressed: () => changeDirection(Direction.right),
+              ),
+            ],
+          ),
         ],
       ),
     );
+
+    }
+    else{
+      return AlertDialog(
+          title: const Text('Game Over'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Punteggio: $score\n'),
+              const Text('🏆 Classifica:'),
+              ...topScores.map((entry) => Text('• ${entry['score']} punti')).toList(),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);  // Usa il contesto del dialogo
+                _restartGame();
+              },
+              child: const Text('Riprova'),
+            ),
+          ],
+        );
+    }
   }
+    
+ 
+  
 
   @override
   void dispose() {
     timer?.cancel();
-    database.close();
     super.dispose();
   }
 }

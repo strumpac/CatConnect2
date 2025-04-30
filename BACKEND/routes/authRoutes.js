@@ -3,7 +3,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Post = require('../models/Post');
-const Comment = require('../models/Comment')
+const Comment = require('../models/Comment');
+const Score = require('../models/Score')
 const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
 
@@ -343,6 +344,25 @@ router.post('/addComment/:postId', async (req, res) => {
 
     res.status(201).json(newPost);
     console.log(post.comments)
+  }catch(error){
+    res.status(500);
+  }
+
+  
+});
+
+router.post('/addScore', async (req, res) => {
+
+  const { user, score} = req.body
+
+  try {
+
+
+    const newScore = await Score.create({user, score});
+    console.log(newScore);
+    Score.save();
+
+    res.status(201)
   }catch(error){
     res.status(500);
   }
