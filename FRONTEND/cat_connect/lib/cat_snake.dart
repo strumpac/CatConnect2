@@ -110,14 +110,25 @@ class _SnakeGameState extends State<SnakeGame> {
 
   // === DIALOG FINE GIOCO ===
   void _GameOver() async {
-     final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      gameOver = true;
+    });
+    final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');
+
+    if (token == null) {
+      setState(() {
+        print('Non trovato il token. Effettua il login.');
+      });
+      return;
+    }
+
     try {
       final response = await http.get(
-
-        Uri.parse('https://catconnect-7yg6.onrender.com//api/auth/me'),
-        headers: {'Authorization': '$token'},
+        Uri.parse('http://10.1.0.6:5000/api/auth/me'),
+        headers: {'Authorization': token},
       );
+
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -132,11 +143,10 @@ class _SnakeGameState extends State<SnakeGame> {
       setState(() {
       });
     }
-    
-    gameOver = true;
+   
 
      final response = await http.post(
-      Uri.parse('http://10.1.0.6:5000/api/auth/addScores'),
+      Uri.parse('http://10.1.0.6:5000/api/auth/addScore'),
       body: json.encode({'user': userID,
                           'score': score}),
       headers: {'Content-Type': 'application/json'},

@@ -354,7 +354,8 @@ router.post('/addComment/:postId', async (req, res) => {
 router.post('/addScore', async (req, res) => {
 
   const { user, score} = req.body
-
+  console.log(user)
+  console.log(score)
   try {
 
 
