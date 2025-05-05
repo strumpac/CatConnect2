@@ -1,21 +1,28 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:http/http.dart' as http;
+
 
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
+
 class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> posts = [];
   List<String> following = [];
   String? _errorMessage;
-  var id = '';
+  String id = '';
+
+
+  Map<String, List<dynamic>> postComments = {};
+  Set<String> expandedPosts = {};
+  Map<String, TextEditingController> commentControllers = {};
+
 
   @override
   void initState() {
@@ -23,9 +30,11 @@ class _HomeScreenState extends State<HomeScreen> {
     _identifyUser();
   }
 
+
   Future<void> _identifyUser() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');
+
 
     if (token == null) {
       setState(() {
@@ -34,11 +43,13 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
+
     try {
       final response = await http.get(
-        Uri.parse('http://10.1.0.6:5000/api/auth/me'),
+        Uri.parse('http://10.1.0.13:5000/api/auth/me'),
         headers: {'Authorization': token},
       );
+
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -60,13 +71,15 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+
   Future<void> loadPosts() async {
     try {
       final response = await http.post(
-        Uri.parse('http://10.1.0.6:5000/api/auth/followingPosts'),
+        Uri.parse('http://10.1.0.13:5000/api/auth/followingPosts'),
         body: json.encode({'id': id}),
         headers: {'Content-Type': 'application/json'},
       );
+
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -86,9 +99,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+
   Future<void> toggleLike(String postId) async {
     final response = await http.post(
-      Uri.parse('http://10.1.0.6:5000/api/auth/toggleLike/$postId'),
+      Uri.parse('http://10.1.0.13:5000/api/auth/toggleLike/$postId'),
       body: json.encode({'id': id}),
       headers: {'Content-Type': 'application/json'},
     );
@@ -98,11 +112,13 @@ class _HomeScreenState extends State<HomeScreen> {
         if (index != -1) {
           List<dynamic> likes = posts[index]['likes'] ?? [];
 
+
           if (likes.contains(id)) {
-            likes.remove(id); // Dislike
+            likes.remove(id);
           } else {
-            likes.add(id); // Like
+            likes.add(id);
           }
+
 
           posts[index]['likes'] = likes;
         }
@@ -112,59 +128,89 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-// questa è una prova solo per aggiungere un commento
-  Future<void> addComment(String postId) async {
+
+  Future<void> addComment(String postId, String text) async {
     final response = await http.post(
-      Uri.parse('http://10.1.0.6:5000/api/auth/addComment/$postId'),
-      body: json.encode({'user': 'miri',
-                          'text':'ma che carino',
-                          'createdAt': DateTime.wednesday}),
+      Uri.parse('http://10.1.0.13:5000/api/auth/addComment/$postId'),
+      body: json.encode({
+        'user': id,
+        'text': text,
+        'createdAt': DateTime.now().toIso8601String(),
+      }),
       headers: {'Content-Type': 'application/json'},
     );
 
+
     if (response.statusCode == 200) {
-    
+      await viewComments(postId); // ricarica commenti aggiornati
     } else {
       print('Errore nel commento: ${response.statusCode}');
     }
   }
 
+
 Future<void> viewComments(String postId) async {
+  TextEditingController commentController = TextEditingController();
+
+
   try {
     final response = await http.post(
-      Uri.parse('http://10.1.0.6:5000/api/auth/getAllComments/$postId'),
+      Uri.parse('http://10.1.0.13:5000/api/auth/getAllComments/$postId'),
       headers: {'Content-Type': 'application/json'},
     );
+
 
     if (response.statusCode == 200) {
       final List<dynamic> comments = json.decode(response.body);
 
+
       showDialog(
         context: context,
-        builder: (_) => AlertDialog(
-          title: Text("Commenti"),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: comments.length,
-              itemBuilder: (context, index) {
-                final comment = comments[index];
-                return ListTile(
-                  leading: Icon(Icons.comment),
-                  title: Text(comment['text'] ?? 'Nessun testo'),
-                  subtitle: Text('Autore: ${comment['author'] ?? 'Sconosciuto'}'),
-                );
-              },
+        builder: (_) {
+          return AlertDialog(
+            title: Text("Commenti"),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: comments.length,
+                      itemBuilder: (context, index) {
+                        final comment = comments[index];
+                        return ListTile(
+                          leading: Icon(Icons.comment),
+                          title: Text(comment['text'] ?? 'Nessun testo'),
+                        );
+                      },
+                    ),
+                  ),
+                  Divider(),
+                  TextField(
+                    controller: commentController,
+                    decoration: InputDecoration(
+                      labelText: 'Scrivi un commento...',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final text = commentController.text.trim();
+                      if (text.isNotEmpty) {
+                        await addComment(postId, text);
+                        Navigator.pop(context); // chiude la modale
+                      }
+                    },
+                    child: Text('Invia'),
+                  ),
+                ],
+              ),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Chiudi"),
-            ),
-          ],
-        ),
+          );
+        },
       );
     } else {
       print("Errore nel caricamento dei commenti: ${response.statusCode}");
@@ -173,6 +219,12 @@ Future<void> viewComments(String postId) async {
     print("Errore di rete: $e");
   }
 }
+
+
+
+
+
+
 
 
   @override
@@ -197,6 +249,14 @@ Future<void> viewComments(String postId) async {
                         final post = posts[index];
                         final List<dynamic> likes = post['likes'] ?? [];
                         final bool isLiked = likes.contains(id);
+                        final postId = post['id'];
+
+
+                        commentControllers.putIfAbsent(
+                          postId,
+                          () => TextEditingController(),
+                        );
+
 
                         return AnimationConfiguration.staggeredList(
                           position: index,
@@ -240,24 +300,87 @@ Future<void> viewComments(String postId) async {
                                       child: Row(
                                         children: [
                                           IconButton(
-                                            icon:
-                                                Icon(Icons.favorite, size: 30),
+                                            icon: Icon(Icons.favorite,
+                                                size: 30),
                                             color: isLiked
                                                 ? Colors.red
                                                 : Colors.grey[400],
                                             onPressed: () =>
-                                                toggleLike(post['id']),
+                                                toggleLike(postId),
                                           ),
                                           IconButton(
                                             icon: Icon(Icons.comment,
                                                 size: 28,
                                                 color: Colors.black54),
-                                            onPressed: () =>
-                                            viewComments(post['id']),
+                                            onPressed: () {
+                                              if (expandedPosts
+                                                  .contains(postId)) {
+                                                setState(() => expandedPosts
+                                                    .remove(postId));
+                                              } else {
+                                                viewComments(postId);
+                                              }
+                                            },
                                           ),
                                         ],
                                       ),
-                                    )
+                                    ),
+                                    if (expandedPosts.contains(postId))
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            for (var comment
+                                                in postComments[postId] ?? [])
+                                              ListTile(
+                                                dense: true,
+                                                contentPadding:
+                                                    EdgeInsets.zero,
+                                                leading: Icon(Icons.comment,
+                                                    size: 18),
+                                                title: Text(
+                                                    comment['text'] ?? ''),
+                                                subtitle: Text(
+                                                    'Autore: ${comment['author'] ?? 'Sconosciuto'}'),
+                                              ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 8.0),
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: TextField(
+                                                      controller:
+                                                          commentControllers[
+                                                              postId],
+                                                      decoration:
+                                                          InputDecoration(
+                                                        hintText:
+                                                            'Scrivi un commento...',
+                                                        border:
+                                                            OutlineInputBorder(),
+                                                      ),
+                                                      onSubmitted: (text) async {
+                                                        if (text.isNotEmpty) {
+                                                          await addComment(
+                                                              postId, text);
+                                                          commentControllers[
+                                                                  postId]!
+                                                              .clear();
+                                                        }
+                                                      },
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                   ],
                                 ),
                               ),
