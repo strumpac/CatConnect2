@@ -56,10 +56,10 @@ class _LoginScreenState extends State<LoginScreen> {
       });
       return;
     }
-  //metodo per controllare le credenziali e fare l'autenticazione
+
     try {
       final response = await http.post(
-        Uri.parse('https://catconnect-7yg6.onrender.com/api/auth/login'),
+        Uri.parse('http://10.1.0.13:5000/api/auth/login'),
         body: json.encode({
           'username': _usernameController.text,
           'password': _passwordController.text,
@@ -67,35 +67,33 @@ class _LoginScreenState extends State<LoginScreen> {
         headers: {'Content-Type': 'application/json'},
       );
 
-      setState(() {
-        _isLoading = false;
-      });
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final token = data['token'];
 
         final prefs = await SharedPreferences.getInstance();
-        prefs.setString('authToken', token);
-        
+        await prefs.setString('authToken', token);
+
         MyAppState? appState = context.findAncestorStateOfType<MyAppState>();
         if (appState != null) {
-          appState.updateSelectedIndex(0); 
+          appState.updateSelectedIndex(0);
         }
 
         widget.onLogin(true);
       } else {
         setState(() {
-          _errorMessage = "Errore nel login.";
+          _errorMessage = "Errore nel login, ricontrolla le credenziali.";
+          _isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _isLoading = false;
         _errorMessage = 'Errore di rete: $e';
+        _isLoading = false;
       });
     }
   }
+
   //metodo per la registrazione
   Future<void> _register() async {
     setState(() {
@@ -128,8 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     //salviamo i dati dell'utente sul DB
     final response = await http.post(
-
-      Uri.parse('http://10.1.0.6:5000/api/auth/register'),
+      Uri.parse('http://10.1.0.13:5000/api/auth/register'),
       body: json.encode({
         'username': _usernameController.text,
         'email': _emailController.text,
@@ -147,7 +144,9 @@ class _LoginScreenState extends State<LoginScreen> {
       _login();
     } else {
       setState(() {
-        _errorMessage = "Errore nella registrazione.";
+        _errorMessage =
+            "Errore nella registrazione, ricontrolla i dati inseriti.";
+        _isLoading = false;
       });
     }
   }

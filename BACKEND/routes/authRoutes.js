@@ -309,47 +309,58 @@ router.post('/toggleLike/:postId', async (req, res) => {
   }
 });
 
+// POST /api/auth/getAllComments/:postId
 router.post('/getAllComments/:postId', async (req, res) => {
   const { postId } = req.params;
 
   try {
-    const post = await Post.findById(postId);
-    if(!post) return res.status(404).json({message: 'Post non trovato'});
+    const post = await Post.findById(postId).populate({
+      path: 'comments',
+      populate: {
+        path: 'user',
+        select: 'username' // o 'email' se preferisci
+      }
+    });
 
-    res.status(200).json(post.comments);
-    console.log(post.comments)
-  }catch(error){
-    res.status(500);
+    if (!post) return res.status(404).json({ message: 'Post non trovato' });
+
+    // Ritorna commenti con autore incluso
+    const formattedComments = post.comments.map(comment => ({
+      text: comment.text,
+      author: comment.user?.username || 'Utente sconosciuto',
+      createdAt: comment.createdAt
+    }));
+
+    res.status(200).json(formattedComments);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Errore nel recupero dei commenti' });
   }
-
-  
 });
 
+
+
+
+// POST /api/auth/addComment/:postId
 router.post('/addComment/:postId', async (req, res) => {
   const { postId } = req.params;
-  const { user, text, createdAt} = req.body
+  const { user, text, createdAt } = req.body;
 
   try {
     const post = await Post.findById(postId);
-    if(!post) return res.status(404).json({message: 'Post non trovato'});
+    if (!post) return res.status(404).json({ message: 'Post non trovato' });
 
-    const newComment = await Comment.create({user, text, createdAt});
-    console.log(newComment);
+    const newComment = await Comment.create({ user, text, createdAt });
+    post.comments.push(newComment._id);
+    await post.save();
 
-
-    if (post) {
-      post.comments.push(newComment._id);  
-      await post.save(); 
-    }
-
-    res.status(201).json(newPost);
-    console.log(post.comments)
-  }catch(error){
-    res.status(500);
+    res.status(200).json(newComment); // <-- Ritorna il commento creato
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Errore nel salvataggio del commento' });
   }
-
-  
 });
+
 
 router.post('/addScore', async (req, res) => {
 
