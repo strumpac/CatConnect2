@@ -125,7 +125,7 @@ class _SnakeGameState extends State<SnakeGame> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.1.0.6:5000/api/auth/me'),
+        Uri.parse('http://10.1.0.13:5000/api/auth/me'),
         headers: {'Authorization': token},
       );
 
