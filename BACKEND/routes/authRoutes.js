@@ -372,6 +372,17 @@ router.post('/addScore', async (req, res) => {
 });
 
 
+router.get('/getScores', async (req, res) => {
+  console.log('uiiiii')
+  try {
+    const scores = await Score.find(); 
+    console.log(scores); 
+    res.status(200).json(scores);
+  } catch (error) {
+    console.error('Errore nel recupero dei punteggi:', error); 
+    res.status(500).json({ message: 'Errore del server, non è stato possibile recuperare i punteggi.' });
+  }
+});
 
 
 module.exports = router;

@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 // === POSIZIONE GRIGLIA ===
 class Position {
   final int x;
@@ -32,7 +31,7 @@ class _SnakeGameState extends State<SnakeGame> {
   Timer? timer;
   int score = 0;
   bool gameOver = false;
-  var topScores = []; 
+  var topScores = [];
   var userID;
 
   final String catEmoji = '🐱';
@@ -43,7 +42,6 @@ class _SnakeGameState extends State<SnakeGame> {
     super.initState();
     startGame();
   }
-
 
   // === AVVIA GIOCO ===
   void startGame() {
@@ -83,7 +81,7 @@ class _SnakeGameState extends State<SnakeGame> {
 
     if (snake.any((s) => s.equals(newHead))) {
       timer?.cancel();
-      _GameOver();  
+      _GameOver();
       return;
     }
 
@@ -129,7 +127,6 @@ class _SnakeGameState extends State<SnakeGame> {
         headers: {'Authorization': token},
       );
 
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
@@ -140,26 +137,37 @@ class _SnakeGameState extends State<SnakeGame> {
         }
       }
     } catch (e) {
-      setState(() {
-      });
+      setState(() {});
     }
-   
 
-     final response = await http.post(
+    final response = await http.post(
       Uri.parse('http://10.1.0.6:5000/api/auth/addScore'),
-      body: json.encode({'user': userID,
-                          'score': score}),
+      body: json.encode({'user': userID, 'score': score}),
       headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode == 200) {
-    
     } else {
       print('Errore nel commento: ${response.statusCode}');
     }
 
-  }
+    final res =
+        await http.get(Uri.parse('http://10.1.0.6:5000/api/auth/getScores'));
 
+    if (res.statusCode == 200) {
+  final data = json.decode(res.body);
+
+  if (data!= null) {
+    setState(() {
+      topScores = data;
+    });
+  } else {
+    print('Nessuna classifica trovata.');
+  }
+} else {
+  print('Errore nel recupero della classifica: ${res.statusCode}');
+}
+  }
 
   // === RIAVVIA GIOCO ===
   void _restartGame() {
@@ -174,92 +182,95 @@ class _SnakeGameState extends State<SnakeGame> {
 
   @override
   Widget build(BuildContext context) {
-    if(!gameOver){
-        return Scaffold(
-      appBar: AppBar(title: const Text('Snake Gattino 🐱')),
-      body: Column(
-        children: [
-          Expanded(
-            child: GridView.builder(
-              itemCount: rowSize * rowSize,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: rowSize),
-              itemBuilder: (context, index) {
-                final x = index % rowSize;
-                final y = index ~/ rowSize;
-                final pos = Position(x, y);
+    if (!gameOver) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Snake Gattino 🐱')),
+        body: Column(
+          children: [
+            Expanded(
+              child: GridView.builder(
+                itemCount: rowSize * rowSize,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: rowSize),
+                itemBuilder: (context, index) {
+                  final x = index % rowSize;
+                  final y = index ~/ rowSize;
+                  final pos = Position(x, y);
 
-                if (snake.any((s) => s.equals(pos))) {
-                  return Center(child: Text(catEmoji, style: const TextStyle(fontSize: 20)));
-                } else if (food.equals(pos)) {
-                  return Center(child: Text(foodEmoji, style: const TextStyle(fontSize: 20)));
-                } else {
-                  return Container(color: Colors.lightGreen[300]);
-                }
-              },
+                  if (snake.any((s) => s.equals(pos))) {
+                    return Center(
+                        child: Text(catEmoji,
+                            style: const TextStyle(fontSize: 20)));
+                  } else if (food.equals(pos)) {
+                    return Center(
+                        child: Text(foodEmoji,
+                            style: const TextStyle(fontSize: 20)));
+                  } else {
+                    return Container(color: Colors.lightGreen[300]);
+                  }
+                },
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text('Punteggio: $score', style: const TextStyle(fontSize: 20)),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_upward),
-                onPressed: () => changeDirection(Direction.up),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => changeDirection(Direction.left),
-              ),
-              IconButton(
-                icon: const Icon(Icons.arrow_downward),
-                onPressed: () => changeDirection(Direction.down),
-              ),
-              IconButton(
-                icon: const Icon(Icons.arrow_forward),
-                onPressed: () => changeDirection(Direction.right),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-
-    }
-    else{
-      return AlertDialog(
-          title: const Text('Game Over'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Punteggio: $score\n'),
-              const Text('🏆 Classifica:'),
-              ...topScores.map((entry) => Text('• ${entry['score']} punti')).toList(),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);  // Usa il contesto del dialogo
-                _restartGame();
-              },
-              child: const Text('Riprova'),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text('Punteggio: $score',
+                  style: const TextStyle(fontSize: 20)),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_upward),
+                  onPressed: () => changeDirection(Direction.up),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => changeDirection(Direction.left),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.arrow_downward),
+                  onPressed: () => changeDirection(Direction.down),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.arrow_forward),
+                  onPressed: () => changeDirection(Direction.right),
+                ),
+              ],
             ),
           ],
-        );
+        ),
+      );
+    } else {
+      return AlertDialog(
+        title: const Text('Game Over'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Punteggio: $score\n'),
+            const Text('🏆 Classifica:'),
+            ...topScores
+                .map((entry) => Text('• ${entry['score']} punti'))
+                .toList(),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Usa il contesto del dialogo
+              _restartGame();
+            },
+            child: const Text('Riprova'),
+          ),
+        ],
+      );
     }
   }
-    
- 
-  
 
   @override
   void dispose() {
@@ -267,3 +278,4 @@ class _SnakeGameState extends State<SnakeGame> {
     super.dispose();
   }
 }
+ 
