@@ -56,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           id = data['id'];
           following = List<String>.from(data['following'] ?? []);
+
           loadPosts();
         });
       } else {
@@ -129,29 +130,28 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 
-  Future<void> addComment(String postId, String text) async {
-    final response = await http.post(
-      Uri.parse('http://10.1.0.13:5000/api/auth/addComment/$postId'),
-      body: json.encode({
-        'user': id,
-        'text': text,
-        'createdAt': DateTime.now().toIso8601String(),
-      }),
-      headers: {'Content-Type': 'application/json'},
-    );
+Future<void> addComment(String postId, String text) async {
+  final response = await http.post(
+    Uri.parse('http://10.1.0.13:5000/api/auth/addComment/$postId'),
+    body: json.encode({
+      'user': id,
+      'text': text,
+      'createdAt': DateTime.now().toIso8601String(),
+    }),
+    headers: {'Content-Type': 'application/json'},
+  );
 
-
-    if (response.statusCode == 200) {
-      await viewComments(postId); // ricarica commenti aggiornati
-    } else {
-      print('Errore nel commento: ${response.statusCode}');
-    }
+  if (response.statusCode == 200) {
+    await viewComments(postId); // Ricarica i commenti aggiornati
+  } else {
+    print('Errore nel commento: ${response.statusCode}');
   }
+}
+
 
 
 Future<void> viewComments(String postId) async {
   TextEditingController commentController = TextEditingController();
-
 
   try {
     final response = await http.post(
@@ -159,10 +159,8 @@ Future<void> viewComments(String postId) async {
       headers: {'Content-Type': 'application/json'},
     );
 
-
     if (response.statusCode == 200) {
       final List<dynamic> comments = json.decode(response.body);
-
 
       showDialog(
         context: context,
@@ -171,41 +169,46 @@ Future<void> viewComments(String postId) async {
             title: Text("Commenti"),
             content: SizedBox(
               width: double.maxFinite,
+              height: 400,
               child: Column(
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   Expanded(
                     child: ListView.builder(
-                      shrinkWrap: true,
                       itemCount: comments.length,
                       itemBuilder: (context, index) {
                         final comment = comments[index];
                         return ListTile(
                           leading: Icon(Icons.comment),
-                          title: Text(comment['text'] ?? 'Nessun testo'),
+                          title: Text(comment['text']),
+                          subtitle: Text("Autore: ${comment['author']}"),
                         );
                       },
                     ),
                   ),
-                  Divider(),
-                  TextField(
-                    controller: commentController,
-                    decoration: InputDecoration(
-                      labelText: 'Scrivi un commento...',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final text = commentController.text.trim();
-                      if (text.isNotEmpty) {
-                        await addComment(postId, text);
-                        Navigator.pop(context); // chiude la modale
-                      }
-                    },
-                    child: Text('Invia'),
-                  ),
+                  Row(
+  children: [
+    Expanded(
+      child: TextField(
+        controller: commentController,
+        decoration: InputDecoration(
+          labelText: 'Scrivi un commento...',
+          border: OutlineInputBorder(),
+        ),
+      ),
+    ),
+    IconButton(
+      icon: Icon(Icons.send),
+      onPressed: () async {
+        final text = commentController.text.trim();
+        if (text.isNotEmpty) {
+          await addComment(postId, text);
+          Navigator.pop(context); // Chiudi la modale
+        }
+      },
+    ),
+  ],
+),
+
                 ],
               ),
             ),
@@ -219,12 +222,6 @@ Future<void> viewComments(String postId) async {
     print("Errore di rete: $e");
   }
 }
-
-
-
-
-
-
 
 
   @override

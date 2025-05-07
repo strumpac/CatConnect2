@@ -187,7 +187,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
     }
 
 
-    const String apiUrl = 'https://catconnect-7yg6.onrender.com//api/auth/addPost';
+    const String apiUrl = 'http://10.1.0.13:5000/api/auth/addPost';
 
     try {
       final response = await http.post(
