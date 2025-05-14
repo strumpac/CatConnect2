@@ -7,6 +7,7 @@ import 'search.dart';
 import 'login.dart';
 import 'searched.dart'; 
 import 'cat_snake.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(MyApp());
@@ -20,58 +21,66 @@ class MyApp extends StatefulWidget {
 }
 
 class MyAppState extends State<MyApp> {
-  int _selectedIndex = 0; // Indice della schermata selezionata
+  int _selectedIndex = 0;
   bool _isLoggedIn = false;
-  String?
-      _selectedUserId; // Variabile per gestire la schermata del profilo cercato
+  String? _selectedUserId;
 
-  // Lista delle schermate per la BottomNavigationBar
-  static  List<Widget> _widgetOptions = <Widget>[
+  static List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     SearchScreen(),
     AddPostScreen(),
     SnakeGame(),
-    AccountScreen()
-    
+    AccountScreen(),
   ];
 
-  // Aggiorna l'indice della pagina selezionata
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus(); // verifica il login all'avvio
+  }
+
+  // ✅ Verifica se esiste un token salvato
+  Future<void> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
+
+    if (token != null) {
+      setState(() {
+        _isLoggedIn = true;
+      });
+    }
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      _selectedUserId =
-          null; // Reset del profilo cercato quando si cambia schermata
+      _selectedUserId = null;
     });
   }
 
-  // Funzione per gestire il login
   void _handleLogin(bool isLoggedIn) {
     setState(() {
       _isLoggedIn = isLoggedIn;
     });
   }
 
-  // Funzione per visualizzare il profilo utente cercato
   void showUserProfileScreen(String userId) {
     setState(() {
       _selectedUserId = userId;
     });
   }
 
-
   void updateSelectedIndex(int index) {
-  setState(() {
-    _selectedIndex = index;
-  });
-}
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
-void updateLogin(int index){
-  setState(() {
-    _isLoggedIn = false; 
-  });
-
-}
-
+  void updateLogin(int index) {
+    setState(() {
+      _isLoggedIn = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +91,7 @@ void updateLogin(int index){
         scaffoldBackgroundColor: Colors.white,
         colorScheme: const ColorScheme.light(
           primary: Colors.white,
-          secondary: Colors.black
+          secondary: Colors.black,
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
@@ -102,7 +111,7 @@ void updateLogin(int index){
       home: _isLoggedIn
           ? Scaffold(
               appBar: AppBar(
-                toolbarHeight: 48, // Altezza ridotta della barra
+                toolbarHeight: 48,
                 title: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -126,9 +135,7 @@ void updateLogin(int index){
               ),
               body: _selectedUserId == null
                   ? _widgetOptions.elementAt(_selectedIndex)
-                  : SearchedUserScreen(
-                      userId:
-                          _selectedUserId!), // Mostra il profilo utente se selezionato
+                  : SearchedUserScreen(userId: _selectedUserId!),
               bottomNavigationBar: Container(
                 decoration: const BoxDecoration(
                   color: Colors.black,

@@ -72,15 +72,16 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
-  Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.remove('authToken'); // Rimuovi il token dalla memoria locale
+Future<void> _logout() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove('authToken');
 
-            MyAppState? appState = context.findAncestorStateOfType<MyAppState>();
-        if (appState != null) {
-          appState.updateLogin(0); 
-        }
+  MyAppState? appState = context.findAncestorStateOfType<MyAppState>();
+  if (appState != null) {
+    appState.updateLogin(0);
   }
+}
+
 
 // visualizzo le info dell'utente e i suoi post
   @override
