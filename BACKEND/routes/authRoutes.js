@@ -366,6 +366,8 @@ router.post('/addScore', async (req, res) => {
   const { user, score } = req.body;
 
   try {
+
+
     const newScore = await Score.create({ user, score });
     
     
@@ -375,12 +377,14 @@ router.post('/addScore', async (req, res) => {
     
     res.status(500).json({ message: 'Errore durante l\'aggiunta del punteggio', error: error.message });
     console.log('erroraccio:', error);
+
   }
 });
 
 
-router.get('/getScores', async (req,res) => {
-  console.log('uiiiii')
+
+router.get('/getScores', async (req, res) => {
+
   try {
     const topScores = await Score.find()
       .sort({ score: -1 }) // Ordina per punteggio decrescente

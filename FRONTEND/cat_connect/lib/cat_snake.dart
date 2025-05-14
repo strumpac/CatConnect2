@@ -143,6 +143,7 @@ class _SnakeGameState extends State<SnakeGame> {
       });
     }
 
+
     final response = await http.post(
       Uri.parse('http://10.1.0.6:5000/api/auth/addScore'),
       body: json.encode({'user': userID, 'score': score}),

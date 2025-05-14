@@ -5,7 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cat_connect/main.dart';
 
 class AccountScreen extends StatefulWidget {
-  const AccountScreen({super.key});
+  final Function(String) onThemeChanged; // Funzione per cambiare il tema
+
+  const AccountScreen({super.key, required this.onThemeChanged});
 
   @override
   _AccountScreenState createState() => _AccountScreenState();
@@ -20,13 +22,23 @@ class _AccountScreenState extends State<AccountScreen> {
   List<String> userPosts = [];
   bool _isLoading = true;
   String? _errorMessage;
+  String? _currentSelectedTheme;
 
   @override
   void initState() {
     super.initState();
+    _loadCurrentTheme(); // Carica il tema corrente all'avvio
     _fetchUserData();
   }
- // recupero i dati dell'utente
+
+  // Carica il tema corrente dalle SharedPreferences
+  Future<void> _loadCurrentTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _currentSelectedTheme = prefs.getString('theme') ?? 'Classico';
+    });
+  }
+
   Future<void> _fetchUserData() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');
@@ -41,7 +53,6 @@ class _AccountScreenState extends State<AccountScreen> {
 
     try {
       final response = await http.get(
-
         Uri.parse('http://10.1.0.13:5000/api/auth/me'),
         headers: {'Authorization': token},
       );
@@ -72,18 +83,26 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
-Future<void> _logout() async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.remove('authToken');
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('authToken');
 
-  MyAppState? appState = context.findAncestorStateOfType<MyAppState>();
-  if (appState != null) {
-    appState.updateLogin(0);
+    MyAppState? appState = context.findAncestorStateOfType<MyAppState>();
+    if (appState != null) {
+      appState.updateLogin(0);
+    }
   }
-}
 
+  // Funzione per cambiare il tema
+  void _changeTheme(String? newTheme) {
+    if (newTheme != null) {
+      setState(() {
+        _currentSelectedTheme = newTheme;
+      });
+      widget.onThemeChanged(newTheme); // Chiama la funzione passata dal main
+    }
+  }
 
-// visualizzo le info dell'utente e i suoi post
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,7 +119,6 @@ Future<void> _logout() async {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Foto di profilo e informazioni dell'utente
                         Row(
                           children: [
                             CircleAvatar(
@@ -114,30 +132,43 @@ Future<void> _logout() async {
                                 Text(
                                   username,
                                   style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold),
+                                      fontSize: 22, fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(height: 8),
                                 Text(
-                                    '$followers followers  •  $following following'),
+                                    '$followers followers  •  $following following'),
                               ],
                             ),
-
-                            // Icona di logout a destra
                             IconButton(
                               icon: const Icon(Icons.logout),
-                              onPressed: _logout, // Funzione per il logout
+                              onPressed: _logout,
                             ),
                           ],
                         ),
                         SizedBox(height: 20),
-                        // Sezione post dell'utente
                         Text(
                           'Posts ($posts)',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 10),
+                        // Aggiungi il selettore del tema
+                        Text(
+                          'Seleziona Tema',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        DropdownButton<String>(
+                          value: _currentSelectedTheme,
+                          onChanged: _changeTheme,
+                          items: themes.keys.map((String themeName) {
+                            return DropdownMenuItem<String>(
+                              value: themeName,
+                              child: Text(themeName),
+                            );
+                          }).toList(),
+                        ),
                       ],
                     ),
                   ),
