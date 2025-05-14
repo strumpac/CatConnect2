@@ -204,68 +204,111 @@ if (res.statusCode == 200) {
   @override
   Widget build(BuildContext context) {
     if (!gameOver) {
-      return Scaffold(
-        body: Column(
-          children: [
-            Expanded(
-              child: GridView.builder(
-                itemCount: rowSize * rowSize,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: rowSize),
-                itemBuilder: (context, index) {
-                  final x = index % rowSize;
-                  final y = index ~/ rowSize;
-                  final pos = Position(x, y);
+ return Scaffold(
+  backgroundColor: Colors.lightGreen[100],
+  body: SafeArea(
+    child: Column(
+      children: [
+        const SizedBox(height: 12),
 
-                  if (snake.any((s) => s.equals(pos))) {
-                    return Center(
-                        child: Text(catEmoji,
-                            style: const TextStyle(fontSize: 20)));
-                  } else if (food.equals(pos)) {
-                    return Center(
-                        child: Text(foodEmoji,
-                            style: const TextStyle(fontSize: 20)));
-                  } else {
-                    return Container(color: Colors.lightGreen[300]);
-                  }
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Text('Punteggio: $score',
-                  style: const TextStyle(fontSize: 20)),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_upward),
-                  onPressed: () => changeDirection(Direction.up),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () => changeDirection(Direction.left),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.arrow_downward),
-                  onPressed: () => changeDirection(Direction.down),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.arrow_forward),
-                  onPressed: () => changeDirection(Direction.right),
-                ),
-              ],
-            ),
-          ],
+        // Punteggio in alto
+        Text(
+          'Punteggio: $score',
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
         ),
-      );
-    } else {
+
+        const SizedBox(height: 8),
+
+        // Griglia di gioco
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: GridView.builder(
+              itemCount: rowSize * rowSize,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: rowSize,
+              ),
+              itemBuilder: (context, index) {
+                final x = index % rowSize;
+                final y = index ~/ rowSize;
+                final pos = Position(x, y);
+
+                if (snake.any((s) => s.equals(pos))) {
+                  return Center(
+                    child: Text(catEmoji,
+                        style: const TextStyle(fontSize: 20)),
+                  );
+                } else if (food.equals(pos)) {
+                  return Center(
+                    child: Text(foodEmoji,
+                        style: const TextStyle(fontSize: 20)),
+                  );
+                } else {
+                  return Container(color: Colors.lightGreen[300]);
+                }
+              },
+            ),
+          ),
+        ),
+
+        // Frecce direzionali più compatte
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Column(
+            children: [
+              // Freccia su
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    iconSize: 48,
+                    icon: const Icon(Icons.arrow_upward),
+                    onPressed: () => changeDirection(Direction.up),
+                  ),
+                ],
+              ),
+
+              // Freccia sinistra, destra
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    iconSize: 48,
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => changeDirection(Direction.left),
+                  ),
+                  const SizedBox(width: 40),
+                  IconButton(
+                    iconSize: 48,
+                    icon: const Icon(Icons.arrow_forward),
+                    onPressed: () => changeDirection(Direction.right),
+                  ),
+                ],
+              ),
+
+              // Freccia giù
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    iconSize: 48,
+                    icon: const Icon(Icons.arrow_downward),
+                    onPressed: () => changeDirection(Direction.down),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  ),
+);
+} else {
       return AlertDialog(
   backgroundColor: Colors.white,
   shape: RoundedRectangleBorder(
