@@ -363,32 +363,30 @@ router.post('/addComment/:postId', async (req, res) => {
 
 
 router.post('/addScore', async (req, res) => {
+  const { user, score } = req.body;
 
-  const { user, score} = req.body
-  console.log(user)
-  console.log(score)
   try {
-
-
-    const newScore = await Score.create({user, score});
-    console.log(newScore);
-    Score.save();
-
-    res.status(201)
-  }catch(error){
-    res.status(500);
+    const newScore = await Score.create({ user, score });
+    
+    
+    res.status(200).json({ message: 'Punteggio aggiunto correttamente', score: newScore });
+    console.log('aggiunto');
+  } catch (error) {
+    
+    res.status(500).json({ message: 'Errore durante l\'aggiunta del punteggio', error: error.message });
+    console.log('erroraccio:', error);
   }
-
-  
 });
 
 
-router.get('/getScores', async (req, res) => {
+router.get('/getScores', async (req,res) => {
   console.log('uiiiii')
   try {
-    const scores = await Score.find(); 
-    console.log(scores); 
-    res.status(200).json(scores);
+    const topScores = await Score.find()
+      .sort({ score: -1 }) // Ordina per punteggio decrescente
+      .limit(10);          // Limita a 10 risultati
+
+    res.status(200).json(topScores);
   } catch (error) {
     console.error('Errore nel recupero dei punteggi:', error); 
     res.status(500).json({ message: 'Errore del server, non è stato possibile recuperare i punteggi.' });

@@ -33,6 +33,7 @@ class _SnakeGameState extends State<SnakeGame> {
   bool gameOver = false;
   var topScores = [];
   var userID;
+  var errore = 'arrivato';
 
   final String catEmoji = '🐱';
   final String foodEmoji = '🥫';
@@ -123,7 +124,7 @@ class _SnakeGameState extends State<SnakeGame> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.1.0.13:5000/api/auth/me'),
+        Uri.parse('http://10.1.0.6:5000/api/auth/me'),
         headers: {'Authorization': token},
       );
 
@@ -137,7 +138,9 @@ class _SnakeGameState extends State<SnakeGame> {
         }
       }
     } catch (e) {
-      setState(() {});
+      setState(() {
+        errore = 'erroraccio';
+      });
     }
 
     final response = await http.post(
@@ -145,28 +148,45 @@ class _SnakeGameState extends State<SnakeGame> {
       body: json.encode({'user': userID, 'score': score}),
       headers: {'Content-Type': 'application/json'},
     );
+    
+      setState(() {
+          errore = 'passato1';
+        });
+        if (response.statusCode == 200) {
+          setState(() {
+          errore = 'passato2';
+        });
+      final res = await http.get(Uri.parse('http://10.1.0.6:5000/api/auth/getScores'));
 
-    if (response.statusCode == 200) {
+setState(() {
+  errore = 'passato3';
+});
+
+if (res.statusCode == 200) {
+  try {
+    final data = json.decode(res.body); // Decodifica la risposta JSON in una lista di mappe.
+
+    if (data != null && data.isNotEmpty) {
+      // Crea una lista di oggetti con i punteggi, ad esempio:
+      List<Map<String, dynamic>> scoresList = List<Map<String, dynamic>>.from(data);
+      
+      setState(() {
+        topScores = scoresList; // Aggiorna lo stato con la lista dei punteggi
+      });
     } else {
-      print('Errore nel commento: ${response.statusCode}');
+      print('Nessuna classifica trovata.');
     }
-
-    final res =
-        await http.get(Uri.parse('http://10.1.0.6:5000/api/auth/getScores'));
-
-    if (res.statusCode == 200) {
-  final data = json.decode(res.body);
-
-  if (data!= null) {
-    setState(() {
-      topScores = data;
-    });
-  } else {
-    print('Nessuna classifica trovata.');
+  } catch (e) {
+    print('Errore nel parsing dei dati: $e');
   }
 } else {
   print('Errore nel recupero della classifica: ${res.statusCode}');
+  print('Response body: ${res.body}');
 }
+    }
+  
+       
+   
   }
 
   // === RIAVVIA GIOCO ===
@@ -184,7 +204,6 @@ class _SnakeGameState extends State<SnakeGame> {
   Widget build(BuildContext context) {
     if (!gameOver) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Snake Gattino 🐱')),
         body: Column(
           children: [
             Expanded(
@@ -247,28 +266,55 @@ class _SnakeGameState extends State<SnakeGame> {
       );
     } else {
       return AlertDialog(
-        title: const Text('Game Over'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Punteggio: $score\n'),
-            const Text('🏆 Classifica:'),
-            ...topScores
-                .map((entry) => Text('• ${entry['score']} punti'))
-                .toList(),
-          ],
+  backgroundColor: Colors.white,
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(16),
+  ),
+  title: const Center(
+    child: Text(
+      'GAME OVER',
+      style: TextStyle(
+        color: Colors.red,
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 2,
+      ),
+    ),
+  ),
+  content: Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      const SizedBox(height: 10),
+      const Text(
+        '🏆 Classifica',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // Usa il contesto del dialogo
-              _restartGame();
-            },
-            child: const Text('Riprova'),
-          ),
-        ],
-      );
+        textAlign: TextAlign.center,
+      ),
+      const SizedBox(height: 10),
+      ...topScores.map((entry) => Text(
+            '• ${entry['score']} punti',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 16),
+          )),
+    ],
+  ),
+  actionsAlignment: MainAxisAlignment.center,
+  actions: [
+    TextButton(
+      onPressed: () {
+        Navigator.pop(context);
+        _restartGame();
+      },
+      child: const Text(
+        'Riprova',
+        style: TextStyle(fontSize: 16),
+      ),
+    ),
+  ],
+);
     }
   }
 
@@ -278,4 +324,3 @@ class _SnakeGameState extends State<SnakeGame> {
     super.dispose();
   }
 }
- 
