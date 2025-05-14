@@ -162,7 +162,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
     try {
       final response = await http.get(
 
-        Uri.parse('https://catconnect-7yg6.onrender.com//api/auth/me'),
+        Uri.parse('http://10.1.0.13:5000/api/auth/me'),
         headers: {'Authorization': '$token'},
       );
 
