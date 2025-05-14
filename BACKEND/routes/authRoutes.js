@@ -372,7 +372,7 @@ router.post('/addScore', async (req, res) => {
 
     const newScore = await Score.create({user, score});
     console.log(newScore);
-    Score.save();
+    await newScore.save();
 
     res.status(201)
   }catch(error){
@@ -384,7 +384,6 @@ router.post('/addScore', async (req, res) => {
 
 
 router.get('/getScores', async (req, res) => {
-  console.log('uiiiii')
   try {
     const scores = await Score.find(); 
     console.log(scores); 

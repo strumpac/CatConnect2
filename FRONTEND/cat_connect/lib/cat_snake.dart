@@ -140,33 +140,35 @@ class _SnakeGameState extends State<SnakeGame> {
       setState(() {});
     }
 
-    final response = await http.post(
-      Uri.parse('http://10.1.0.6:5000/api/auth/addScore'),
-      body: json.encode({'user': userID, 'score': score}),
-      headers: {'Content-Type': 'application/json'},
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('http://10.1.0.13:5000/api/auth/addScore'),
+        body: json.encode({'user': userID, 'score': score}),
+        headers: {'Content-Type': 'application/json'},
+      );
+      
 
-    if (response.statusCode == 200) {
-    } else {
-      print('Errore nel commento: ${response.statusCode}');
+      if (response.statusCode == 201) {
+        final res = await http
+            .get(Uri.parse('http://10.1.0.13:5000/api/auth/getScores'));
+
+        if (res.statusCode == 200) {
+          final data = json.decode(res.body);
+
+          if (data != null) {
+            setState(() {
+              topScores = data;
+            });
+          } else {
+            print('Nessuna classifica trovata.');
+          }
+        } else {
+          print('Errore nel recupero della classifica: ${res.statusCode}');
+        }
+      }
+    } catch (error) {
+      print("Errore interno al server");
     }
-
-    final res =
-        await http.get(Uri.parse('http://10.1.0.6:5000/api/auth/getScores'));
-
-    if (res.statusCode == 200) {
-  final data = json.decode(res.body);
-
-  if (data!= null) {
-    setState(() {
-      topScores = data;
-    });
-  } else {
-    print('Nessuna classifica trovata.');
-  }
-} else {
-  print('Errore nel recupero della classifica: ${res.statusCode}');
-}
   }
 
   // === RIAVVIA GIOCO ===
@@ -278,4 +280,3 @@ class _SnakeGameState extends State<SnakeGame> {
     super.dispose();
   }
 }
- 
