@@ -124,7 +124,7 @@ class _SnakeGameState extends State<SnakeGame> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.1.0.13:5000/api/auth/me'),
+        Uri.parse('https://catconnect-7yg6.onrender.com/api/auth/me'),
         headers: {'Authorization': token},
       );
 
@@ -144,7 +144,7 @@ class _SnakeGameState extends State<SnakeGame> {
     }
 
     final response = await http.post(
-      Uri.parse('http://10.1.0.13:5000/api/auth/addScore'),
+      Uri.parse('https://catconnect-7yg6.onrender.com/api/auth/addScore'),
       body: json.encode({'user': userID, 'score': score}),
       headers: {'Content-Type': 'application/json'},
     );
@@ -157,7 +157,7 @@ class _SnakeGameState extends State<SnakeGame> {
         errore = 'passato2';
       });
       final res =
-          await http.get(Uri.parse('http://10.1.0.13:5000/api/auth/getScores'));
+          await http.get(Uri.parse('https://catconnect-7yg6.onrender.com/api/auth/getScores'));
 
       setState(() {
         errore = 'passato3';
